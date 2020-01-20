@@ -1,5 +1,8 @@
 import os
 import discord
+import random
+import requests
+import json
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -8,15 +11,26 @@ Reading messages we will be using from the .env file included with the bot
 This method allows editing of the messages without digging through code
 """
 load_dotenv()
-token = input('Enter Token:')
 owner = int(os.getenv('OWNER_ID'))
 command_prefix = os.getenv('COMMAND_PREFIX')
 on_command_error_message_GenericMessage = os.getenv('ON_COMMAND_ERROR_MESSAGE_GENERICMESSAGE')
 on_command_error_message_CommandInvokeError = os.getenv('ON_COMMAND_ERROR_MESSAGE_COMMANDINVOKEERROR')
 on_command_error_message_CheckFailure = os.getenv('ON_COMMAND_ERROR_MESSAGE_CHECKFAILURE')
 
-
 bot = commands.Bot(command_prefix=command_prefix, owner_id=owner)
+
+
+def tenor_get(search_term, limit):
+    apikey = tenor_token
+
+    r = requests.get("https://api.tenor.com/v1/search?q=%s&key=%s&limit=%s" % (search_term, apikey, limit))
+
+    if r.status_code == 200:
+        gifs = json.loads(r.content)
+    else:
+        gifs = None
+
+    return gifs
 
 
 def check_if_owner(ctx):
@@ -32,7 +46,10 @@ def check_if_owner(ctx):
 
 @bot.event
 async def on_ready():
+    global tenor_token
+    print('\n')
     print(f'{bot.user.name} has connected to Discord!')
+    tenor_token = input("Enter Tenor Token: ")
     await bot.change_presence(activity=discord.Game(name='an instrument!'))
 
 
@@ -89,13 +106,21 @@ async def hello(ctx):
 @bot.command(name='stop', hidden=True)
 @commands.check(check_if_owner)
 async def stop(ctx):
+    response = 'Ok bye!'
+    await ctx.send(response)
     await bot.close()
 
 
 @bot.command(name='boop', help='boop someone!')
 async def boop(ctx, booped):
-    response = '*boops {}*'.format(booped)
+    gif = tenor_get("cute nose boop", 12)
+    if gif is None:
+        pick_a_gif = None
+    else:
+        pick_a_gif = gif['results'][random.randint(0, len(gif['results']))]['media'][0]['gif']['url']
+    response = '*boops {}* '.format(booped) + pick_a_gif
     await ctx.send(response)
 
 
-bot.run(token)
+bot.run(input("Enter Discord Token: "))
+
