@@ -27,7 +27,7 @@ def check_if_owner(ctx):
     :return: bool for the check of ctx.message.author.id against the defined owner ID in the declaration of bot
     """
 
-    return bot.is_owner(ctx.message.author.id)
+    return bot.is_owner(ctx.message.author)
 
 
 @bot.event
