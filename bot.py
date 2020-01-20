@@ -8,7 +8,7 @@ Reading messages we will be using from the .env file included with the bot
 This method allows editing of the messages without digging through code
 """
 load_dotenv()
-token = os.getenv('DISCORD_TOKEN')
+token = input('Enter Token:')
 owner = int(os.getenv('OWNER_ID'))
 command_prefix = os.getenv('COMMAND_PREFIX')
 on_command_error_message_GenericMessage = os.getenv('ON_COMMAND_ERROR_MESSAGE_GENERICMESSAGE')
@@ -82,7 +82,7 @@ async def multiply(ctx, num_a, num_b):
 @bot.command(name='hello', help='Says hello!')
 async def hello(ctx):
     response = 'Hello ' + str(ctx.author) + '! Lovely conversation in ' + str(ctx.channel) + ', eh?'
-    with ctx.channel.typing():
+    async with ctx.channel.typing():
         await ctx.send(response)
 
 
@@ -90,6 +90,12 @@ async def hello(ctx):
 @commands.check(check_if_owner)
 async def stop(ctx):
     await bot.close()
+
+
+@bot.command(name='boop', help='boop someone!')
+async def boop(ctx, booped):
+    response = '*boops {}*'.format(booped)
+    await ctx.send(response)
 
 
 bot.run(token)
