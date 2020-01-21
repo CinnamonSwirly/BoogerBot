@@ -33,6 +33,21 @@ def tenor_get(search_term, limit):
     return gifs
 
 
+def wikipedia_get():
+    wiki = requests.get('https://en.wikipedia.org/wiki/Special:Random')
+    if wiki.status_code == 200:
+        article = wiki.text
+    else:
+        article = None
+
+    if article is not None:
+        title = article.split('<title>')[1].split(' - Wikipedia</title>')[0]
+    else:
+        title = None
+
+    return title
+
+
 def check_if_owner(ctx):
     """
     Bot commands can reference this command's output to determine if the invoking user is the owner of the bot
@@ -120,6 +135,22 @@ async def boop(ctx, booped):
         pick_a_gif = gif['results'][random.randint(0, len(gif['results']))]['media'][0]['gif']['url']
     response = '*boops {}* '.format(booped) + pick_a_gif
     await ctx.send(response)
+
+
+@bot.command(name='wikimix', help='Plays madlibs with wikipedia')
+async def wikimix(ctx):
+    async with ctx.channel.typing():
+        response = 'Let me cook something up...'
+        await ctx.send(response)
+        mixes = [
+            'Imagine {} mixed with {}'.format(wikipedia_get(), wikipedia_get()),
+            'A new dish! {} and {} served with a side of {}'.format(wikipedia_get(), wikipedia_get(), wikipedia_get()),
+            'Try the hot new dance! {}'.format(wikipedia_get()),
+            'You know what really helps me relax? Bundling up with {} while remembering {}'.format(wikipedia_get(),
+                                                                                                   wikipedia_get())
+        ]
+        mix = mixes[random.randint(0, len(mixes)-1)]
+        await ctx.send(mix)
 
 
 bot.run(input("Enter Discord Token: "))
