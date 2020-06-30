@@ -3,6 +3,7 @@ import discord
 import random
 import requests
 import json
+import re
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -64,6 +65,7 @@ async def on_ready():
     global tenor_token
     print('\n')
     print(f'{bot.user.name} has connected to Discord!')
+    os.system('cls')
     tenor_token = input("Enter Tenor Token: ")
     await bot.change_presence(activity=discord.Game(name='an instrument!'))
 
@@ -78,6 +80,8 @@ async def on_command_error(ctx, error):
         response = False
     elif isinstance(error, commands.errors.CheckFailure):
         response = on_command_error_message_CheckFailure
+    elif isinstance(error, commands.errors.MissingRequiredArgument):
+        response = 'I think you forgot to add something there. Check help for info.'
     else:
         response = False
         pass
@@ -151,6 +155,82 @@ async def wikimix(ctx):
         ]
         mix = mixes[random.randint(0, len(mixes)-1)]
         await ctx.send(mix)
+
+
+@bot.command(name='rps', help='Rock paper scissors! Syntax is rps [rock/paper/scissors]')
+async def rps(ctx, selection):
+    async with ctx.channel.typing():
+
+        response = 'Oh you wanna go, huh?'
+        await ctx.send(response)
+
+        rps_dict = {
+            0: 'rock',
+            1: 'paper',
+            2: 'scissors'
+        }
+
+        player_dict = {
+            'rock': 0,
+            'paper': 1,
+            'scissors': 2
+        }
+
+        if str(selection).lower() in player_dict:
+            player_pick = player_dict[str(selection.lower())]
+            bots_pick = random.randint(0, 2)
+            if bots_pick == player_pick:
+                bots_response = 'Oh no! A tie! I picked {} too!'.format(rps_dict[bots_pick])
+            else:
+                rps_matrix = [[-1, 1, 0], [1, -1, 2], [0, 2, -1]]
+                winner = rps_matrix[player_pick][bots_pick]
+                if winner == player_pick:
+                    bots_response = 'Darn it! You win, I picked {}.'.format(rps_dict[bots_pick])
+                else:
+                    bots_response = 'Boom! Get roasted nerd! I picked {}!'.format(rps_dict[bots_pick])
+        else:
+            bots_response = 'Hey, if you want to play, you have to say rps rock, rps paper or rps scissors'
+
+        await ctx.send(bots_response)
+
+
+@bot.command(name='roll', help='rolls a dice. Syntax is roll d2 up to d1000')
+async def roll(ctx, *args):
+    async with ctx.channel.typing():
+        if args is not None:
+            if len(args) == 1:
+                try:
+                    dice_amount = 1
+                    dice_sides = int(args[0].lower().replace('d', ''))
+                except ValueError:
+                    dice_amount = 0
+
+            elif len(args) == 2:
+                try:
+                    dice_amount = int(args[0])
+                    if dice_amount > 6:
+                        notice = "I can't really handle more than 6 dice at a time, so I'll just roll 6."
+                        dice_amount = 6
+                        await ctx.send(notice)
+                    dice_sides = int(args[1].lower().replace('d', ''))
+                except ValueError:
+                    dice_amount = 0
+
+            else:
+                dice_amount = 0
+
+            if dice_amount > 0:
+                response = 'Here are your dice!'
+
+                for rolls in range(0, dice_amount):
+                    dice_roll = random.randint(1, dice_sides)
+                    response += '\nd{} {}: {}'.format(dice_sides, rolls + 1, dice_roll)
+            else:
+                response = "Look bucko, if you want me to roll a dice, do it like this: roll d2 or roll 2 d6"
+        else:
+            response = "Look bucko, if you want me to roll a dice, do it like this: roll d2 or roll 2 d6"
+
+    await ctx.send(response)
 
 
 bot.run(input("Enter Discord Token: "))
