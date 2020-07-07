@@ -4,6 +4,7 @@ import random
 import requests
 import json
 import re
+import sys
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -66,7 +67,7 @@ async def on_ready():
     print('\n')
     print(f'{bot.user.name} has connected to Discord!')
     os.system('cls')
-    tenor_token = input("Enter Tenor Token: ")
+    tenor_token = str(sys.argv[2])
     await bot.change_presence(activity=discord.Game(name='an instrument!'))
 
 
@@ -103,26 +104,7 @@ async def ping(ctx):
     await ctx.send(response)
 
 
-@bot.command(name='multiply', help='Multiplies number A by number B. Example: multiply 2 6')
-async def multiply(ctx, num_a, num_b):
-    try:
-        response = num_a + ' times ' + num_b + ' = ' + str(int(num_a) * int(num_b))
-    except ValueError:
-        response = 'Are you trying to perform magic again? Can you not?'
-    finally:
-        if response is None:
-            response = on_command_error_message_GenericMessage
-        await ctx.send(response)
-
-
-@bot.command(name='hello', help='Says hello!')
-async def hello(ctx):
-    response = 'Hello ' + str(ctx.author) + '! Lovely conversation in ' + str(ctx.channel) + ', eh?'
-    async with ctx.channel.typing():
-        await ctx.send(response)
-
-
-@bot.command(name='stop', hidden=True)
+@bot.command(name='stop', hidden=True, aliases=['bye', 'ciao'])
 @commands.check(check_if_owner)
 async def stop(ctx):
     response = 'Ok bye!'
@@ -233,5 +215,22 @@ async def roll(ctx, *args):
     await ctx.send(response)
 
 
-bot.run(input("Enter Discord Token: "))
+@bot.event
+async def on_message(message):
+    if message.author != bot.user:
+        channel = message.channel
+        if re.search(r'\b[t,T]rump\b', message.content, flags=re.IGNORECASE) is not None:
+            response = "Oh god! Don't say his name!!"
+            await channel.send(response)
+
+        elif re.search(r'\b[u,U]w[u,U]\b', message.content, flags=re.IGNORECASE) is not None:
+            uwu = {"r": "w", "R": "W", "l": "w", "L": "W"}
+            response = message.content
+            for x, y in uwu.items():
+                response = response.replace(x, y)
+            await channel.send(response)
+
+    await bot.process_commands(message)
+
+bot.run(str(sys.argv[1]))
 
