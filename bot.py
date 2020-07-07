@@ -35,10 +35,10 @@ def tenor_get(search_term, limit):
     return gifs
 
 
-def wikipedia_get():
+def wikipedia_get(argument):
     found = None
     wiki = requests.get(
-        'https://en.wikipedia.org/w/api.php?action=opensearch&search="vatican city"&limit=1&namespace=0&format=json')
+        'https://en.wikipedia.org/w/api.php?action=opensearch&search="{argument}"&limit=1&namespace=0&format=json')
     if wiki.status_code == 200:
         article = json.loads(wiki.content)
 
@@ -63,6 +63,11 @@ def check_if_owner(ctx):
     """
 
     return bot.is_owner(ctx.message.author)
+
+
+def TupleToStr(obj):
+    result = ''.join(obj)
+    return result
 
 
 @bot.event
@@ -126,10 +131,11 @@ async def boop(ctx, booped):
     await ctx.send(response)
 
 
-@bot.command(name='wiki', aliases=['wikipedia', 'lookup'], help='Plays madlibs with wikipedia')
-async def wiki(ctx):
+@bot.command(name='wiki', aliases=['wikipedia', 'lookup'], help='Looks up something on wikipedia.')
+async def wiki(ctx, *args):
     async with ctx.channel.typing():
-        find = wikipedia_get()
+        lookup_value = TupleToStr(*args)
+        find = wikipedia_get(lookup_value)
         if find is not None:
             response = find
         else:
