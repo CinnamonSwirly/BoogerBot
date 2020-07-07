@@ -38,7 +38,8 @@ def tenor_get(search_term, limit):
 def wikipedia_get(argument):
     found = None
     wiki = requests.get(
-        'https://en.wikipedia.org/w/api.php?action=opensearch&search="{argument}"&limit=1&namespace=0&format=json')
+        'https://en.wikipedia.org/w/api.php?action=opensearch&search="{}"&limit=1&namespace=0&format=json'
+        .format(argument))
     if wiki.status_code == 200:
         article = json.loads(wiki.content)
 
