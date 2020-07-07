@@ -36,18 +36,22 @@ def tenor_get(search_term, limit):
 
 
 def wikipedia_get():
-    wiki = requests.get('https://en.wikipedia.org/wiki/Special:Random')
+    found = None
+    wiki = requests.get(
+        'https://en.wikipedia.org/w/api.php?action=opensearch&search="vatican city"&limit=1&namespace=0&format=json')
     if wiki.status_code == 200:
-        article = wiki.text
-    else:
-        article = None
+        article = json.loads(wiki.content)
 
-    if article is not None:
-        title = article.split('<title>')[1].split(' - Wikipedia</title>')[0]
-    else:
-        title = None
+        for results in article:
+            if 'https' in str(results):
+                found = str(results).replace("['", "").replace("']", "")
+            else:
+                pass
 
-    return title
+    else:
+        print("I'm having trouble talking to wikipedia. I'll tell my owner about it.")
+
+    return found
 
 
 def check_if_owner(ctx):
@@ -122,20 +126,15 @@ async def boop(ctx, booped):
     await ctx.send(response)
 
 
-@bot.command(name='wikimix', help='Plays madlibs with wikipedia')
-async def wikimix(ctx):
+@bot.command(name='wiki', aliases=['wikipedia', 'lookup'], help='Plays madlibs with wikipedia')
+async def wiki(ctx):
     async with ctx.channel.typing():
-        response = 'Let me cook something up...'
+        find = wikipedia_get()
+        if find is not None:
+            response = find
+        else:
+            response = "No Results Found. Check your spelling and try again."
         await ctx.send(response)
-        mixes = [
-            'Imagine {} mixed with {}'.format(wikipedia_get(), wikipedia_get()),
-            'A new dish! {} and {} served with a side of {}'.format(wikipedia_get(), wikipedia_get(), wikipedia_get()),
-            'Try the hot new dance! {}'.format(wikipedia_get()),
-            'You know what really helps me relax? Bundling up with {} while remembering {}'.format(wikipedia_get(),
-                                                                                                   wikipedia_get())
-        ]
-        mix = mixes[random.randint(0, len(mixes)-1)]
-        await ctx.send(mix)
 
 
 @bot.command(name='rps', help='Rock paper scissors! Syntax is rps [rock/paper/scissors]')
