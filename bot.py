@@ -66,7 +66,6 @@ async def on_ready():
     global tenor_token
     print('\n')
     print(f'{bot.user.name} has connected to Discord!')
-    os.system('cls')
     tenor_token = str(sys.argv[2])
     await bot.change_presence(activity=discord.Game(name='an instrument!'))
 
