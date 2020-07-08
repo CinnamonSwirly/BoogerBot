@@ -67,7 +67,7 @@ def check_if_owner(ctx):
 
 
 def TupleToStr(obj):
-    result = ''.join(obj)
+    result = " ".join(obj)
     return result
 
 
@@ -135,7 +135,10 @@ async def boop(ctx, booped):
 @bot.command(name='wiki', aliases=['wikipedia', 'lookup'], help='Looks up something on wikipedia.')
 async def wiki(ctx, *args):
     async with ctx.channel.typing():
-        lookup_value = TupleToStr(*args)
+        if len(args) == 1:
+            lookup_value = args[0]
+        else:
+            lookup_value = TupleToStr(args)
         find = wikipedia_get(lookup_value)
         if find is not None:
             response = find
