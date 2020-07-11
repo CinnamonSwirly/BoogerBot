@@ -187,13 +187,13 @@ async def rps(ctx, selection):
         if str(selection).lower() in player_dict:
 
             # We need to make a row for this player in the DB if this is their first time playing
-            Boogerball.cursor.execute("SELECT playerID FROM rps WHERE playerID = '{}'".format(
+            Boogerball.cursor.execute("SELECT playerID FROM rps WHERE playerID = '{}';".format(
                     ctx.message.author.id))
             check = Boogerball.cursor.fetchall()
-            if check is None:
+            if len(check) == 0:
                 print("Player {} has no entry in rps table, creating...".format(ctx.message.author.id))
                 Boogerball.cursor.execute("INSERT INTO rps (playerID, wincount, losecount, drawcount, rocktimes,"
-                                          " scistimes, papetimes, streak) VALUES ('{}', 0, 0, 0, 0, 0, 0, 0)".format(
+                                          " scistimes, papetimes, streak) VALUES ('{}', 0, 0, 0, 0, 0, 0, 0);".format(
                                             str(ctx.message.author.id)))
 
             player_pick = player_dict[str(selection.lower())]
@@ -202,7 +202,7 @@ async def rps(ctx, selection):
                 bots_response = 'Oh no! A tie! I picked {} too!'.format(rps_dict[bots_pick])
                 print("Player {} has tied a game of rps, updating...".format(ctx.message.author.id))
                 Boogerball.cursor.execute("UPDATE rps SET drawcount = drawcount + 1, streak = 0 WHERE "
-                                          "playerID = '{}'".format(str(ctx.message.author.id)))
+                                          "playerID = '{}';".format(str(ctx.message.author.id)))
             else:
                 rps_matrix = [[-1, 1, 0], [1, -1, 2], [0, 2, -1]]
                 winner = rps_matrix[player_pick][bots_pick]
@@ -210,12 +210,12 @@ async def rps(ctx, selection):
                     bots_response = 'Darn it! You win, I picked {}.'.format(rps_dict[bots_pick])
                     print("Player {} has won a game of rps, updating...".format(ctx.message.author.id))
                     Boogerball.cursor.execute("UPDATE rps SET wincount = wincount + 1, streak = streak + 1 WHERE "
-                                              "playerID = '{}'".format(str(ctx.message.author.id)))
+                                              "playerID = '{}';".format(str(ctx.message.author.id)))
                 else:
                     bots_response = 'Boom! Get roasted nerd! I picked {}!'.format(rps_dict[bots_pick])
                     print("Player {} has lost a game of rps, updating...".format(ctx.message.author.id))
                     Boogerball.cursor.execute("UPDATE rps SET losecount = losecount + 1, streak = 0 WHERE "
-                                              "playerID = '{}'".format(str(ctx.message.author.id)))
+                                              "playerID = '{}';".format(str(ctx.message.author.id)))
         else:
             bots_response = 'Hey, if you want to play, you have to say rps rock, rps paper or rps scissors'
 
