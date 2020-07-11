@@ -5,6 +5,8 @@ import requests
 import json
 import re
 import sys
+import datetime
+import psycopg2
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -20,6 +22,22 @@ on_command_error_message_CommandInvokeError = os.getenv('ON_COMMAND_ERROR_MESSAG
 on_command_error_message_CheckFailure = os.getenv('ON_COMMAND_ERROR_MESSAGE_CHECKFAILURE')
 
 bot = commands.Bot(command_prefix=command_prefix, owner_id=owner)
+
+forbidden_words = []
+
+
+class DatabaseConnection:
+    def __init__(self):
+        self.connection = psycopg2.connect(database='boogerball')
+        self.connection.autocommit = True
+        self.cursor = self.connection.cursor()
+
+
+Boogerball = DatabaseConnection()
+
+# TODO: Write a function to collect all of the forbidden words and stick them in the above list
+
+# TODO: Write a function to save current attributes of a forbidden word to SQL
 
 
 def tenor_get(search_term, limit):
@@ -66,8 +84,8 @@ def check_if_owner(ctx):
     return bot.is_owner(ctx.message.author)
 
 
-def TupleToStr(obj):
-    result = " ".join(obj)
+def tuple_to_str(obj, joinchar):
+    result = "{}".format(joinchar).join(obj)
     return result
 
 
@@ -138,7 +156,7 @@ async def wiki(ctx, *args):
         if len(args) == 1:
             lookup_value = args[0]
         else:
-            lookup_value = TupleToStr(args)
+            lookup_value = tuple_to_str(args, " ")
         find = wikipedia_get(lookup_value)
         if find is not None:
             response = find
@@ -167,17 +185,32 @@ async def rps(ctx, selection):
         }
 
         if str(selection).lower() in player_dict:
+
+            # We need to make a row for this player in the DB if this is their first time playing
+            check = Boogerball.cursor.execute("SELECT playerID FROM rps WHERE playerID = '{}'".format(
+                    ctx.message.author.id))
+            if Boogerball.cursor.fetchall() is None:
+                Boogerball.cursor.execute("INSERT INTO rps (playerID, wincount, losecount, drawcount, rocktimes,"
+                                          " scistimes, papetimes, streak) VALUES ('{}', 0, 0, 0, 0, 0, 0, 0)".format(
+                                            str(ctx.message.author.id)))
+
             player_pick = player_dict[str(selection.lower())]
             bots_pick = random.randint(0, 2)
             if bots_pick == player_pick:
                 bots_response = 'Oh no! A tie! I picked {} too!'.format(rps_dict[bots_pick])
+                Boogerball.cursor.execute("UPDATE rps SET drawcount = drawcount + 1, streak = 0 WHERE "
+                                          "playerID = '{}'".format(str(ctx.message.author.id)))
             else:
                 rps_matrix = [[-1, 1, 0], [1, -1, 2], [0, 2, -1]]
                 winner = rps_matrix[player_pick][bots_pick]
                 if winner == player_pick:
                     bots_response = 'Darn it! You win, I picked {}.'.format(rps_dict[bots_pick])
+                    Boogerball.cursor.execute("UPDATE rps SET wincount = wincount + 1, streak = streak + 1 WHERE "
+                                              "playerID = '{}'".format(str(ctx.message.author.id)))
                 else:
                     bots_response = 'Boom! Get roasted nerd! I picked {}!'.format(rps_dict[bots_pick])
+                    Boogerball.cursor.execute("UPDATE rps SET losecount = losecount + 1, streak = 0 WHERE "
+                                              "playerID = '{}'".format(str(ctx.message.author.id)))
         else:
             bots_response = 'Hey, if you want to play, you have to say rps rock, rps paper or rps scissors'
 
@@ -223,10 +256,20 @@ async def roll(ctx, *args):
     await ctx.send(response)
 
 
+@bot.command(name='forbid', help='Will set up a trigger so when a word is said, a message is posted. '
+                                 'Syntax: forbid cookies AH! Now Im hungry, thanks &user, its only been &time since'
+                                 ' someone reminded me about it. Yall have said it &times now')
+async def forbid(ctx, keyword: str, *args):
+    if args is not None:
+        pass
+        # TODO: Query SQL to ensure keyword does not have a row in ForbiddenWords
+
+
 @bot.event
 async def on_message(message):
     if message.author != bot.user:
         channel = message.channel
+        # TODO: Run through the list of forbidden words to see if a message needs to be said
         if re.search(r'\b[t,T]rump\b', message.content, flags=re.IGNORECASE) is not None:
             response = "Oh god! Don't say his name!!"
             await channel.send(response)
@@ -241,4 +284,3 @@ async def on_message(message):
     await bot.process_commands(message)
 
 bot.run(str(sys.argv[1]))
-
