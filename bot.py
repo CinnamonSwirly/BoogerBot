@@ -40,6 +40,13 @@ Boogerball = DatabaseConnection()
 # TODO: Write a function to save current attributes of a forbidden word to SQL
 
 
+def check_plural(number):
+    if number == 1:
+        return ""
+    else:
+        return "s"
+
+
 def tenor_get(search_term, limit):
     apikey = tenor_token
 
@@ -192,11 +199,13 @@ async def rps(ctx, selection):
             Boogerball.cursor.execute("SELECT * FROM rps WHERE playerID = '{}'".format(ctx.message.author.id))
             stats = Boogerball.cursor.fetchone()
             if len(stats) != 0:
-                response = "<@!{}>'s stats:\nYou've won {} games, lost {}, and tied {} times" \
-                           "\nYou've used rock {} times, scissors {} times and paper {} times" \
-                           "\nYou've won {} games in a row and played {} times".format(
-                            ctx.message.author.id, stats[1], stats[2], stats[3], stats[4], stats[5],
-                            stats[6], stats[7], stats[1] + stats[2] + stats[3])
+                response = "<@!{}>'s stats:\nYou've won {} game{}, lost {}, and tied {} time{}" \
+                           "\nYou've used rock {} time{}, scissors {} time{} and paper {} time{}" \
+                           "\nYou've won {} game{} in a row and played {} time{}".format(
+                            ctx.message.author.id, stats[1], check_plural(stats[1]), stats[2], stats[3],
+                            check_plural(stats[3]), stats[4], check_plural(stats[4]), stats[5], check_plural(stats[5]),
+                            stats[6], check_plural(stats[6]), stats[7], check_plural(stats[7]),
+                            stats[1] + stats[2] + stats[3], check_plural(stats[1] + stats[2] + stats[3]))
             else:
                 response = "I don't think you've played before, am I taking crazy pills?"
             await ctx.send(response)
@@ -247,20 +256,20 @@ async def rps(ctx, selection):
                     Boogerball.cursor.execute("UPDATE rps SET losecount = losecount + 1, streak = 0 WHERE "
                                               "playerID = '{}';".format(str(ctx.message.author.id)))
 
+            await ctx.send(bots_response)
+
+            # Let's check for a win streak and tell the whole channel if the person is on a roll!
+            Boogerball.cursor.execute("SELECT streak FROM rps WHERE playerID = '{}'".format(str(ctx.message.author.id)))
+            streak_check = Boogerball.cursor.fetchone()
+            print("Player {} has won {} games in a row".format(ctx.message.author.id, streak_check[0]))
+            if streak_check[0] % 3 == 0 and streak_check[0] > 1:
+                await ctx.send("Oh snap <@!{}>! You're on a roll! You've won {} games in a row!".format(
+                    ctx.message.author.id, streak_check[0]))
+
         # The player did something wrong to end up here.
         else:
             bots_response = 'Hey, if you want to play, you have to say rps rock, rps paper or rps scissors'
-
-        # Send the final result.
-        await ctx.send(bots_response)
-
-        # Let's check for a win streak and tell the whole channel if the person is on a roll!
-        Boogerball.cursor.execute("SELECT streak FROM rps WHERE playerID = '{}'".format(str(ctx.message.author.id)))
-        streak_check = Boogerball.cursor.fetchone()
-        print("Player {} has won {} games in a row".format(ctx.message.author.id, streak_check[0]))
-        if streak_check[0] % 3 == 0 and streak_check[0] > 1:
-            await ctx.send("Oh snap <@!{}>! You're on a roll! You've won {} games in a row!".format(
-                ctx.message.author.id, streak_check[0]))
+            await ctx.send(bots_response)
 
 
 @bot.command(name='roll', help='rolls a dice. Syntax is roll d2 up to d1000')
