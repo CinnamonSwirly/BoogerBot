@@ -169,7 +169,7 @@ async def wiki(ctx, *args):
 async def rps(ctx, selection):
     async with ctx.channel.typing():
 
-        response = 'Oh you wanna go, huh?'
+        response = 'Oh you wanna go, eh <@!{}>?'.format(ctx.message.author.id)
         await ctx.send(response)
 
         rps_dict = {
