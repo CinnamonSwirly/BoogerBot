@@ -187,7 +187,7 @@ async def rps(ctx, selection):
         if str(selection).lower() in player_dict:
 
             # We need to make a row for this player in the DB if this is their first time playing
-            check = Boogerball.cursor.execute("SELECT playerID FROM rps WHERE playerID = '{}'".format(
+            Boogerball.cursor.execute("SELECT playerID FROM rps WHERE playerID = '{}'".format(
                     ctx.message.author.id))
             if Boogerball.cursor.fetchall() is None:
                 Boogerball.cursor.execute("INSERT INTO rps (playerID, wincount, losecount, drawcount, rocktimes,"
