@@ -202,7 +202,7 @@ async def rps(ctx, selection):
             await ctx.send(response)
 
         # If not, then the player must be here to play...
-        if str(selection).lower() in player_dict:
+        elif str(selection).lower() in player_dict:
 
             # We need to make a row for this player in the DB if this is their first time playing
             Boogerball.cursor.execute("SELECT playerID FROM rps WHERE playerID = '{}';".format(
