@@ -165,17 +165,20 @@ async def wiki(ctx, *args):
         await ctx.send(response)
 
 
-@bot.command(name='rps', help='Rock paper scissors! Syntax is rps [rock/paper/scissors]')
+@bot.command(name='rps', help='Rock paper scissors! Syntax is rps [rock/paper/scissors/stats]')
 async def rps(ctx, selection):
     async with ctx.channel.typing():
-
-        response = 'Oh you wanna go, eh <@!{}>?'.format(ctx.message.author.id)
-        await ctx.send(response)
 
         rps_dict = {
             0: 'rock',
             1: 'paper',
             2: 'scissors'
+        }
+
+        rps_sql_dict = {
+            'rock': 'rocktimes',
+            'paper': 'papetimes',
+            'scissors': 'scistimes'
         }
 
         player_dict = {
@@ -184,6 +187,21 @@ async def rps(ctx, selection):
             'scissors': 2
         }
 
+        # If the player is here to check their stats...
+        if str(selection).lower() == 'stats':
+            Boogerball.cursor.execute("SELECT * FROM rps WHERE playerID = '{}'".format(ctx.message.author.id))
+            stats = Boogerball.cursor.fetchone()
+            if len(stats) != 0:
+                response = "<@!{}>'s stats:\nYou've won {} games, lost {}, and tied {} times" \
+                           "\nYou've used rock {} times, scissors {} times and paper {} times" \
+                           "\nYou've won {} games in a row and played {} times".format(
+                            ctx.message.author.id, stats[1], stats[2], stats[3], stats[4], stats[5],
+                            stats[6], stats[7], stats[1] + stats[2] + stats[3])
+            else:
+                response = "I don't think you've played before, am I taking crazy pills?"
+            await ctx.send(response)
+
+        # If not, then the player must be here to play...
         if str(selection).lower() in player_dict:
 
             # We need to make a row for this player in the DB if this is their first time playing
@@ -198,33 +216,49 @@ async def rps(ctx, selection):
 
             player_pick = player_dict[str(selection.lower())]
             bots_pick = random.randint(0, 2)
+
+            # Let's log what the player picked for stat purposes
+            player_sql_pick = rps_sql_dict[str(selection.lower())]
+            Boogerball.cursor.execute("UPDATE rps SET {} = {} + 1".format(player_sql_pick, player_sql_pick))
+
+            # The player and bot have picked the same thing, tie game!
             if bots_pick == player_pick:
                 bots_response = 'Oh no! A tie! I picked {} too!'.format(rps_dict[bots_pick])
                 print("Player {} has tied a game of rps, updating...".format(ctx.message.author.id))
                 Boogerball.cursor.execute("UPDATE rps SET drawcount = drawcount + 1, streak = 0 WHERE "
                                           "playerID = '{}';".format(str(ctx.message.author.id)))
+
+            # The player and the bot did not pick the same thing...
             else:
                 rps_matrix = [[-1, 1, 0], [1, -1, 2], [0, 2, -1]]
                 winner = rps_matrix[player_pick][bots_pick]
+
+                # The player won!
                 if winner == player_pick:
                     bots_response = 'Darn it! You win, I picked {}.'.format(rps_dict[bots_pick])
                     print("Player {} has won a game of rps, updating...".format(ctx.message.author.id))
                     Boogerball.cursor.execute("UPDATE rps SET wincount = wincount + 1, streak = streak + 1 WHERE "
                                               "playerID = '{}';".format(str(ctx.message.author.id)))
+
+                # The bot won!
                 else:
                     bots_response = 'Boom! Get roasted nerd! I picked {}!'.format(rps_dict[bots_pick])
                     print("Player {} has lost a game of rps, updating...".format(ctx.message.author.id))
                     Boogerball.cursor.execute("UPDATE rps SET losecount = losecount + 1, streak = 0 WHERE "
                                               "playerID = '{}';".format(str(ctx.message.author.id)))
+
+        # The player did something wrong to end up here.
         else:
             bots_response = 'Hey, if you want to play, you have to say rps rock, rps paper or rps scissors'
 
+        # Send the final result.
         await ctx.send(bots_response)
 
+        # Let's check for a win streak and tell the whole channel if the person is on a roll!
         Boogerball.cursor.execute("SELECT streak FROM rps WHERE playerID = '{}'".format(str(ctx.message.author.id)))
         streak_check = Boogerball.cursor.fetchone()
         print("Player {} has won {} games in a row".format(ctx.message.author.id, streak_check[0]))
-        if streak_check[0] % 5 == 0 and streak_check[0] > 1:
+        if streak_check[0] % 3 == 0 and streak_check[0] > 1:
             await ctx.send("Oh snap <@!{}>! You're on a roll! You've won {} games in a row!".format(
                 ctx.message.author.id, streak_check[0]))
 
