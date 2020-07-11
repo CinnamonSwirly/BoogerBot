@@ -223,7 +223,7 @@ async def rps(ctx, selection):
 
         Boogerball.cursor.execute("SELECT streak FROM rps WHERE playerID = '{}'".format(str(ctx.message.author.id)))
         streak_check = Boogerball.cursor.fetchone()
-        print("Player {} has won {} games in a row").format(ctx.message.author.id, streak_check[0])
+        print("Player {} has won {} games in a row".format(ctx.message.author.id, streak_check[0]))
         if streak_check[0] % 5 == 0:
             await ctx.send("Oh snap <@!{}>! You're on a roll! You've won {} games in a row!").format(
                 ctx.message.author.id, streak_check[0])
