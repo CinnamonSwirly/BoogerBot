@@ -174,8 +174,8 @@ async def wiki(ctx, *args):
         await ctx.send(response)
 
 
-@bot.command(name='rps', help='Rock paper scissors! Syntax is rps [rock/paper/scissors/stats]')
-async def rps(ctx, selection):
+@bot.command(name='rps', help='Rock paper scissors! Start a game with rps, or use rps stats to check yourself!')
+async def rps(ctx, selection='play'):
     async with ctx.channel.typing():
 
         rps_dict = {
@@ -223,7 +223,36 @@ async def rps(ctx, selection):
             await ctx.send(response)
 
         # If not, then the player must be here to play...
-        elif str(selection).lower() in player_dict:
+        elif str(selection).lower() == 'play':
+
+            # Construct the game's prompt and get ready for the player's selection.
+            prompt = "Oh you wanna go, huh? Choose your weapon then:"
+            prompt_message = await ctx.send(prompt)
+            await prompt_message.add_reaction("✊")
+            await prompt_message.add_reaction("✋")
+            await prompt_message.add_reaction("✌")
+
+            # Wait for the player to react back to the message
+            def check_prompt(reaction, user):
+                return user == ctx.author and \
+                       (str(reaction.emoji) == '✊' or str(reaction.emoji) == '✋' or str(reaction.emoji) == '✌')
+
+            try:
+                reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check_prompt)
+
+                if str(reaction.emoji) == '✊':
+                    player_pick = player_dict['rock']
+                elif str(reaction.emoji) == '✋':
+                    player_pick = player_dict['paper']
+                elif str(reaction.emoji) == '✌':
+                    player_pick = player_dict['scissors']
+
+                await prompt_message.clear_reactions()
+
+            except asyncio.TimeoutError:
+                response = "I didn't hear back from you in time, so I stopped this game."
+                await prompt_message.clear_reactions()
+                await prompt_message.edit(content=response, suppress=True, delete_after=60)
 
             # We need to make a row for this player in the DB if this is their first time playing
             Boogerball.cursor.execute("SELECT playerID FROM rps WHERE playerID = %(playerID)s",
@@ -235,11 +264,11 @@ async def rps(ctx, selection):
                                           " scistimes, papetimes, streak) VALUES (%(playerID)s, 0, 0, 0, 0, 0, 0, 0)",
                                           {'playerID': str(ctx.message.author.id)})
 
-            player_pick = player_dict[str(selection.lower())]
+            # Let the bot pick, too!
             bots_pick = random.randint(0, 2)
 
             # Let's log what the player picked for stat purposes
-            player_sql_pick = rps_sql_dict[str(selection.lower())]
+            player_sql_pick = rps_sql_dict[str(rps_dict[player_pick])]
             player_pick_sql = psycopg2.sql.SQL("""
                 UPDATE rps
                 SET {player_pick_column} = {player_pick_column} + 1
@@ -273,7 +302,7 @@ async def rps(ctx, selection):
                     Boogerball.cursor.execute("UPDATE rps SET losecount = losecount + 1, streak = 0 WHERE "
                                               "playerID = %(playerID)s", {'playerID': str(ctx.message.author.id)})
 
-            await ctx.send(bots_response)
+            await prompt_message.edit(content=response)
 
             # Let's check for a win streak and tell the whole channel if the person is on a roll!
             Boogerball.cursor.execute("SELECT streak FROM rps WHERE playerID = %(playerID)s",
@@ -286,7 +315,7 @@ async def rps(ctx, selection):
 
         # The player did something wrong to end up here.
         else:
-            bots_response = 'Hey, if you want to play, you have to say rps rock, rps paper or rps scissors'
+            bots_response = 'Huh, that was weird. I will tell my owner something went wrong here.'
             await ctx.send(bots_response)
 
 
