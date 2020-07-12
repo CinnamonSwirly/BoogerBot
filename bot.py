@@ -197,8 +197,8 @@ async def rps(ctx, selection):
 
         # If the player is here to check their stats...
         if str(selection).lower() == 'stats':
-            Boogerball.cursor.execute("SELECT * FROM rps WHERE playerID = %(playerID)d",
-                                      {'playerID': ctx.message.author.id})
+            Boogerball.cursor.execute("SELECT * FROM rps WHERE playerID = %(playerID)s",
+                                      {'playerID': str(ctx.message.author.id)})
             stats = Boogerball.cursor.fetchone()
             if stats is not None:
                 response = "<@!%(authorid)d>'s stats:\nYou've won %(wincount)d game%(winplural)s, lost %(losecount)d," \
@@ -225,14 +225,14 @@ async def rps(ctx, selection):
         elif str(selection).lower() in player_dict:
 
             # We need to make a row for this player in the DB if this is their first time playing
-            Boogerball.cursor.execute("SELECT playerID FROM rps WHERE playerID = %(playerID)d",
-                                      {'playerID': ctx.message.author.id})
+            Boogerball.cursor.execute("SELECT playerID FROM rps WHERE playerID = %(playerID)s",
+                                      {'playerID': str(ctx.message.author.id)})
             check = Boogerball.cursor.fetchall()
             if len(check) == 0:
                 print("Player {} has no entry in rps table, creating...".format(ctx.message.author.id))
                 Boogerball.cursor.execute("INSERT INTO rps (playerID, wincount, losecount, drawcount, rocktimes,"
-                                          " scistimes, papetimes, streak) VALUES (%(playerID)d, 0, 0, 0, 0, 0, 0, 0)",
-                                          {'playerID': ctx.message.author.id})
+                                          " scistimes, papetimes, streak) VALUES (%(playerID)s, 0, 0, 0, 0, 0, 0, 0)",
+                                          {'playerID': str(ctx.message.author.id)})
 
             player_pick = player_dict[str(selection.lower())]
             bots_pick = random.randint(0, 2)
@@ -251,7 +251,7 @@ async def rps(ctx, selection):
                 bots_response = 'Oh no! A tie! I picked {} too!'.format(rps_dict[bots_pick])
                 print("Player {} has tied a game of rps, updating...".format(ctx.message.author.id))
                 Boogerball.cursor.execute("UPDATE rps SET drawcount = drawcount + 1, streak = 0 WHERE "
-                                          "playerID = %(playerID)d", {'playerID': ctx.message.author.id})
+                                          "playerID = %(playerID)s", {'playerID': str(ctx.message.author.id)})
 
             # The player and the bot did not pick the same thing...
             else:
@@ -263,20 +263,20 @@ async def rps(ctx, selection):
                     bots_response = 'Darn it! You win, I picked {}.'.format(rps_dict[bots_pick])
                     print("Player {} has won a game of rps, updating...".format(ctx.message.author.id))
                     Boogerball.cursor.execute("UPDATE rps SET wincount = wincount + 1, streak = streak + 1 WHERE "
-                                              "playerID = %(playerID)d", {'playerID': ctx.message.author.id})
+                                              "playerID = %(playerID)s", {'playerID': str(ctx.message.author.id)})
 
                 # The bot won!
                 else:
                     bots_response = 'Boom! Get roasted nerd! I picked {}!'.format(rps_dict[bots_pick])
                     print("Player {} has lost a game of rps, updating...".format(ctx.message.author.id))
                     Boogerball.cursor.execute("UPDATE rps SET losecount = losecount + 1, streak = 0 WHERE "
-                                              "playerID = %(playerID)d", {'playerID': ctx.message.author.id})
+                                              "playerID = %(playerID)s", {'playerID': str(ctx.message.author.id)})
 
             await ctx.send(bots_response)
 
             # Let's check for a win streak and tell the whole channel if the person is on a roll!
-            Boogerball.cursor.execute("SELECT streak FROM rps WHERE playerID = %(playerID)d",
-                                      {'playerID': ctx.message.author.id})
+            Boogerball.cursor.execute("SELECT streak FROM rps WHERE playerID = %(playerID)s",
+                                      {'playerID': str(ctx.message.author.id)})
             streak_check = Boogerball.cursor.fetchone()
             print("Player {} has won {} games in a row".format(ctx.message.author.id, streak_check[0]))
             if streak_check[0] % 3 == 0 and streak_check[0] > 1:
