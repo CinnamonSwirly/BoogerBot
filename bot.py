@@ -7,6 +7,7 @@ import re
 import sys
 import datetime
 import psycopg2
+from psycopg2 import sql
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -200,12 +201,12 @@ async def rps(ctx, selection):
                                       {'playerID': ctx.message.author.id})
             stats = Boogerball.cursor.fetchone()
             if stats is not None:
-                response = "<@!%(authorid)s>'s stats:\nYou've won %(wincount)s game%(winplural)s, lost %(losecount)s," \
-                           " and tied %(drawcount)s time%(drawplural)s" \
-                           "\nYou've used rock %(rockcount)s time%(rockplural)s," \
-                           " scissors %(sciscount)s time%(scisplural)s and paper %(papecount)s time%(papeplural)s" \
-                           "\nYou've won %(streak)s game%(streakplural)s in a row and" \
-                           " played %(playcount)s time%(playplural)s", {
+                response = "<@!%(authorid)d>'s stats:\nYou've won %(wincount)d game%(winplural)s, lost %(losecount)d," \
+                           " and tied %(drawcount)d time%(drawplural)s" \
+                           "\nYou've used rock %(rockcount)d time%(rockplural)s," \
+                           " scissors %(sciscount)d time%(scisplural)s and paper %(papecount)d time%(papeplural)s" \
+                           "\nYou've won %(streak)d game%(streakplural)s in a row and" \
+                           " played %(playcount)d time%(playplural)s" % {
                                 'authorid': ctx.message.author.id, 'wincount': stats[1],
                                 'winplural': check_plural(stats[1]), 'losecount': stats[2], 'drawcount': stats[3],
                                 'drawplural': check_plural(stats[3]), 'rockcount': stats[4],
@@ -238,8 +239,12 @@ async def rps(ctx, selection):
 
             # Let's log what the player picked for stat purposes
             player_sql_pick = rps_sql_dict[str(selection.lower())]
-            Boogerball.cursor.execute("UPDATE rps SET %(player_pick)s = %(player_pick)s + 1",
-                                      {'player_pick': player_sql_pick})
+            player_pick_sql = psycopg2.sql.SQL("""
+                UPDATE rps
+                SET {player_pick_column} = $(player_pick)s + 1
+                """).format(
+                player_pick_column=sql.Identifier(player_sql_pick))
+            Boogerball.cursor.execute(player_pick_sql, {'player_pick': player_sql_pick})
 
             # The player and bot have picked the same thing, tie game!
             if bots_pick == player_pick:
