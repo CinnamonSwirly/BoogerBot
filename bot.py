@@ -7,6 +7,7 @@ import re
 import sys
 import datetime
 import psycopg2
+import asyncio
 from psycopg2 import sql
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -349,15 +350,15 @@ async def forbid(ctx, keyword, *args):
             prompt = "Do you really want me to create a forbidden word of {} where I say this each time?:" \
                     "\n> {}".format(keyword, message)
             prompt_message = await ctx.send(prompt)
-            prompt_message.add_reaction(["white_check_mark", "no_entry_sign"])
+            await prompt_message.add_reaction(["white_check_mark", "no_entry_sign"])
 
             # Wait for the author to react back to the message
             def check_prompt(reaction, user):
-                return user == ctx.author and str(discord.reaction.Reaction.emoji) == ':white_check_mark:'
+                return user == ctx.author and str(reaction.emoji) == ':white_check_mark:'
 
             try:
                 reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check_prompt)
-            except TimeoutError:
+            except asyncio.TimeoutError:
                 response = "I didn't hear back from you in time, so I canceled this request."
                 await prompt_message.edit(content=response, suppress=True, delete_after=60)
             else:
