@@ -302,7 +302,7 @@ async def rps(ctx, selection='play'):
                     Boogerball.cursor.execute("UPDATE rps SET losecount = losecount + 1, streak = 0 WHERE "
                                               "playerID = %(playerID)s", {'playerID': str(ctx.message.author.id)})
 
-            await prompt_message.edit(content=response)
+            await prompt_message.edit(content=bots_response)
 
             # Let's check for a win streak and tell the whole channel if the person is on a roll!
             Boogerball.cursor.execute("SELECT streak FROM rps WHERE playerID = %(playerID)s",
