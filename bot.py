@@ -196,16 +196,26 @@ async def rps(ctx, selection):
 
         # If the player is here to check their stats...
         if str(selection).lower() == 'stats':
-            Boogerball.cursor.execute("SELECT * FROM rps WHERE playerID = '{}'".format(ctx.message.author.id))
+            Boogerball.cursor.execute("SELECT * FROM rps WHERE playerID = %(playerID)s",
+                                      {'playerID': ctx.message.author.id})
             stats = Boogerball.cursor.fetchone()
             if stats is not None:
-                response = "<@!{}>'s stats:\nYou've won {} game{}, lost {}, and tied {} time{}" \
-                           "\nYou've used rock {} time{}, scissors {} time{} and paper {} time{}" \
-                           "\nYou've won {} game{} in a row and played {} time{}".format(
-                            ctx.message.author.id, stats[1], check_plural(stats[1]), stats[2], stats[3],
-                            check_plural(stats[3]), stats[4], check_plural(stats[4]), stats[5], check_plural(stats[5]),
-                            stats[6], check_plural(stats[6]), stats[7], check_plural(stats[7]),
-                            stats[1] + stats[2] + stats[3], check_plural(stats[1] + stats[2] + stats[3]))
+                response = "<@!%(authorid)s>'s stats:\nYou've won %(wincount)s game%(winplural)s, lost %(losecount)s," \
+                           " and tied %(drawcount)s time%(drawplural)s" \
+                           "\nYou've used rock %(rockcount)s time%(rockplural)s," \
+                           " scissors %(sciscount)s time%(scisplural)s and paper %(papecount)s time%(papeplural)s" \
+                           "\nYou've won %(streak)s game%(streakplural)s in a row and" \
+                           " played %(playcount)s time%(playplural)s", {
+                                'authorid': ctx.message.author.id, 'wincount': stats[1],
+                                'winplural': check_plural(stats[1]), 'losecount': stats[2], 'drawcount': stats[3],
+                                'drawplural': check_plural(stats[3]), 'rockcount': stats[4],
+                                'rockplural': check_plural(stats[4]), 'sciscount': stats[5],
+                                'scisplural': check_plural(stats[5]), 'papecount': stats[6],
+                                'papeplural': check_plural(stats[6]), 'streak': stats[7],
+                                'streakplural': check_plural(stats[7]), 'playcount': stats[1] + stats[2] + stats[3],
+                                'playplural': check_plural(stats[1] + stats[2] + stats[3])
+                            }
+
             else:
                 response = "I don't think you've played before, am I taking crazy pills?"
             await ctx.send(response)
@@ -214,28 +224,29 @@ async def rps(ctx, selection):
         elif str(selection).lower() in player_dict:
 
             # We need to make a row for this player in the DB if this is their first time playing
-            Boogerball.cursor.execute("SELECT playerID FROM rps WHERE playerID = '{}';".format(
-                    ctx.message.author.id))
+            Boogerball.cursor.execute("SELECT playerID FROM rps WHERE playerID = %(playerID)s",
+                                      {'playerID': ctx.message.author.id})
             check = Boogerball.cursor.fetchall()
             if len(check) == 0:
                 print("Player {} has no entry in rps table, creating...".format(ctx.message.author.id))
                 Boogerball.cursor.execute("INSERT INTO rps (playerID, wincount, losecount, drawcount, rocktimes,"
-                                          " scistimes, papetimes, streak) VALUES ('{}', 0, 0, 0, 0, 0, 0, 0);".format(
-                                            str(ctx.message.author.id)))
+                                          " scistimes, papetimes, streak) VALUES (%(playerID)s, 0, 0, 0, 0, 0, 0, 0)",
+                                          {'playerID': ctx.message.author.id})
 
             player_pick = player_dict[str(selection.lower())]
             bots_pick = random.randint(0, 2)
 
             # Let's log what the player picked for stat purposes
             player_sql_pick = rps_sql_dict[str(selection.lower())]
-            Boogerball.cursor.execute("UPDATE rps SET {} = {} + 1".format(player_sql_pick, player_sql_pick))
+            Boogerball.cursor.execute("UPDATE rps SET %(player_pick)s = %(player_pick)s + 1",
+                                      {'player_pick': player_sql_pick})
 
             # The player and bot have picked the same thing, tie game!
             if bots_pick == player_pick:
                 bots_response = 'Oh no! A tie! I picked {} too!'.format(rps_dict[bots_pick])
                 print("Player {} has tied a game of rps, updating...".format(ctx.message.author.id))
                 Boogerball.cursor.execute("UPDATE rps SET drawcount = drawcount + 1, streak = 0 WHERE "
-                                          "playerID = '{}';".format(str(ctx.message.author.id)))
+                                          "playerID = %(playerID)s;", {'playerID': ctx.message.author.id})
 
             # The player and the bot did not pick the same thing...
             else:
@@ -247,19 +258,20 @@ async def rps(ctx, selection):
                     bots_response = 'Darn it! You win, I picked {}.'.format(rps_dict[bots_pick])
                     print("Player {} has won a game of rps, updating...".format(ctx.message.author.id))
                     Boogerball.cursor.execute("UPDATE rps SET wincount = wincount + 1, streak = streak + 1 WHERE "
-                                              "playerID = '{}';".format(str(ctx.message.author.id)))
+                                              "playerID = %(playerID)s", {'playerID': ctx.message.author.id})
 
                 # The bot won!
                 else:
                     bots_response = 'Boom! Get roasted nerd! I picked {}!'.format(rps_dict[bots_pick])
                     print("Player {} has lost a game of rps, updating...".format(ctx.message.author.id))
                     Boogerball.cursor.execute("UPDATE rps SET losecount = losecount + 1, streak = 0 WHERE "
-                                              "playerID = '{}';".format(str(ctx.message.author.id)))
+                                              "playerID = %(playerID)s", {'playerID': ctx.message.author.id})
 
             await ctx.send(bots_response)
 
             # Let's check for a win streak and tell the whole channel if the person is on a roll!
-            Boogerball.cursor.execute("SELECT streak FROM rps WHERE playerID = '{}'".format(str(ctx.message.author.id)))
+            Boogerball.cursor.execute("SELECT streak FROM rps WHERE playerID = %(playerID)s",
+                                      {'playerID': ctx.message.author.id})
             streak_check = Boogerball.cursor.fetchone()
             print("Player {} has won {} games in a row".format(ctx.message.author.id, streak_check[0]))
             if streak_check[0] % 3 == 0 and streak_check[0] > 1:
@@ -319,7 +331,8 @@ async def forbid(ctx, keyword, *args):
     print(args)
     if args is not None:
         message = tuple_to_str(args, " ")
-        Boogerball.cursor.execute("SELECT word FROM forbiddenwords WHERE word = '{}'".format(str(keyword)))
+        Boogerball.cursor.execute("SELECT word FROM forbiddenwords WHERE word = %(keyword)s",
+                                  {'keyword': keyword})
         check = Boogerball.cursor.fetchone()
         if check is None:
             response = "I would have created a forbidden word of {} where I say this each time:" \
@@ -327,7 +340,8 @@ async def forbid(ctx, keyword, *args):
             await ctx.send(response)
             # Boogerball.cursor.execute("INSERT INTO forbiddenwords"
                                       # "(word, status, timesused, message)"
-                                      # "VALUES ('{}',1,0,{});".format(keyword, message))
+                                      # "VALUES (%(keyword)s,1,0,%(message)s);",
+            #                           {'keyword': keyword, 'message': message})
         # TODO: Query SQL to ensure keyword does not have a row in ForbiddenWords
 
 
