@@ -336,17 +336,39 @@ async def forbid(ctx, keyword, *args):
     print(args)
     if args is not None:
         message = tuple_to_str(args, " ")
+
+        # Has this keyword already been forbidden?
         Boogerball.cursor.execute("SELECT word FROM forbiddenwords WHERE word = %(keyword)s",
                                   {'keyword': keyword})
         check = Boogerball.cursor.fetchone()
+
+        # It hasn't been used yet.
         if check is None:
-            response = "I would have created a forbidden word of {} where I say this each time:" \
-                       "\n{}".format(keyword, message)
-            await ctx.send(response)
+
+            # Get ready to ask the user if they really want to register this word
+            prompt = "Do you really want me to create a forbidden word of {} where I say this each time?:" \
+                    "\n> {}".format(keyword, message)
+            prompt_message = await ctx.send(prompt)
+            prompt_message.add_reaction(["white_check_mark", "no_entry_sign"])
+
+            # Wait for the author to react back to the message
+            def check_prompt(reaction, user):
+                return user == ctx.author and str(discord.reaction.Reaction.emoji) == ':white_check_mark:'
+
+            try:
+                reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check_prompt)
+            except TimeoutError:
+                response = "I didn't hear back from you in time, so I canceled this request."
+                await prompt_message.edit(content=response, suppress=True, delete_after=60)
+            else:
+                response = "I would have added this if my owner would finish the function."
+                await prompt_message.edit(content=response)
+
             # Boogerball.cursor.execute("INSERT INTO forbiddenwords"
-                                      # "(word, status, timesused, message)"
-                                      # "VALUES (%(keyword)s,1,0,%(message)s);",
+            #                           "(word, status, timesused, message)"
+            #                           "VALUES (%(keyword)s,1,0,%(message)s);",
             #                           {'keyword': keyword, 'message': message})
+
         # TODO: Query SQL to ensure keyword does not have a row in ForbiddenWords
 
 
