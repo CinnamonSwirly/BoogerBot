@@ -355,7 +355,7 @@ async def forbid(ctx, keyword, *args):
 
             # Wait for the author to react back to the message
             def check_prompt(reaction, user):
-                return user == ctx.author and str(reaction.emoji) == ':white_check_mark:'
+                return user == ctx.author and str(reaction.emoji) == '✅'
 
             try:
                 reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check_prompt)
