@@ -198,7 +198,7 @@ async def rps(ctx, selection):
         if str(selection).lower() == 'stats':
             Boogerball.cursor.execute("SELECT * FROM rps WHERE playerID = '{}'".format(ctx.message.author.id))
             stats = Boogerball.cursor.fetchone()
-            if len(stats) != 0:
+            if stats is not None:
                 response = "<@!{}>'s stats:\nYou've won {} game{}, lost {}, and tied {} time{}" \
                            "\nYou've used rock {} time{}, scissors {} time{} and paper {} time{}" \
                            "\nYou've won {} game{} in a row and played {} time{}".format(
@@ -314,9 +314,20 @@ async def roll(ctx, *args):
 @bot.command(name='forbid', help='Will set up a trigger so when a word is said, a message is posted. '
                                  'Syntax: forbid cookies AH! Now Im hungry, thanks &user, its only been &time since'
                                  ' someone reminded me about it. Yall have said it &times now')
-async def forbid(ctx, keyword: str, *args):
+async def forbid(ctx, keyword, *args):
+    print(keyword)
+    print(args)
     if args is not None:
-        pass
+        message = tuple_to_str(args, " ")
+        Boogerball.cursor.execute("SELECT word FROM forbiddenwords WHERE word = '{}'".format(str(keyword)))
+        check = Boogerball.cursor.fetchone()
+        if check is None:
+            response = "I would have created a forbidden word of {} where I say this each time:" \
+                       "\n{}".format(keyword, message)
+            await ctx.send(response)
+            # Boogerball.cursor.execute("INSERT INTO forbiddenwords"
+                                      # "(word, status, timesused, message)"
+                                      # "VALUES ('{}',1,0,{});".format(keyword, message))
         # TODO: Query SQL to ensure keyword does not have a row in ForbiddenWords
 
 
