@@ -241,10 +241,10 @@ async def rps(ctx, selection):
             player_sql_pick = rps_sql_dict[str(selection.lower())]
             player_pick_sql = psycopg2.sql.SQL("""
                 UPDATE rps
-                SET {player_pick_column} = %(player_pick)s + 1
+                SET {player_pick_column} = {player_pick_column} + 1
                 """).format(
                 player_pick_column=sql.Identifier(player_sql_pick))
-            Boogerball.cursor.execute(player_pick_sql, {'player_pick': player_sql_pick})
+            Boogerball.cursor.execute(player_pick_sql)
 
             # The player and bot have picked the same thing, tie game!
             if bots_pick == player_pick:
