@@ -361,9 +361,11 @@ async def forbid(ctx, keyword, *args):
                 reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check_prompt)
             except asyncio.TimeoutError:
                 response = "I didn't hear back from you in time, so I canceled this request."
+                await prompt_message.clear_reactions()
                 await prompt_message.edit(content=response, suppress=True, delete_after=60)
             else:
                 response = "I would have added this if my owner would finish the function."
+                await prompt_message.clear_reactions()
                 await prompt_message.edit(content=response)
 
             # Boogerball.cursor.execute("INSERT INTO forbiddenwords"
