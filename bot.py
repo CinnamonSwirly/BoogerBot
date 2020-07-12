@@ -350,7 +350,8 @@ async def forbid(ctx, keyword, *args):
             prompt = "Do you really want me to create a forbidden word of {} where I say this each time?:" \
                     "\n> {}".format(keyword, message)
             prompt_message = await ctx.send(prompt)
-            await prompt_message.add_reaction(["white_check_mark", "no_entry_sign"])
+            await prompt_message.add_reaction("white_check_mark")
+            await prompt_message.add_reaction("no_entry_sign")
 
             # Wait for the author to react back to the message
             def check_prompt(reaction, user):
