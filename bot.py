@@ -417,14 +417,16 @@ async def forbid(ctx, keyword, *args):
 async def admin(message):
     if message.author != bot.user:
         if message.channel.id == message.author.dm_channel.id:
-            user = bot.get_user(message.author.id)
-            profile = await user.profile()
-            response = profile.mutual_guilds
-            await user.send(response)
+            response = 'This command cannot be called straight from DMs. Please use this command in the server you ' \
+                       'want to configure options for.'
+            await message.send(response)
         elif not message.guild:
-            pass
+            response = 'This command cannot be called straight from DMs. Please use this command in the server you ' \
+                       'want to configure options for.'
+            await message.send(response)
         else:
-            pass
+            response = 'This would have started the admin console!'
+            await message.send(response)
 
 
 @bot.event
