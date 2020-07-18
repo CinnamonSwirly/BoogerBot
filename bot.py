@@ -258,7 +258,7 @@ async def rps(ctx, selection='play'):
                                    starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
                                    "so I stopped.", timeout_value=60)
 
-            if player_pick:
+            if player_pick is not None:
                 # We need to make a row for this player in the DB if this is their first time playing
                 Boogerball.cursor.execute("SELECT playerID FROM rps WHERE playerID = %(playerID)s",
                                           {'playerID': str(ctx.message.author.id)})
