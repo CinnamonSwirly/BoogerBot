@@ -98,7 +98,7 @@ def tuple_to_str(obj, joinchar):
     return result
 
 
-def emoji_prompt(context, starting_message: str, starting_emoji: list, failure_message: str, timeout_value: int):
+async def emoji_prompt(context, starting_message: str, starting_emoji: list, failure_message: str, timeout_value: int):
     # Present the message and add the provided emoji as options
     prompt_message = await context.send(starting_message)
     for emoji in starting_emoji:
