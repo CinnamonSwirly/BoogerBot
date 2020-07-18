@@ -418,7 +418,7 @@ async def admin(message):
     if message.author != bot.user:
         if message.channel.id == message.author.dm_channel.id:
             user = bot.get_user(message.author.id)
-            profile = user.profile()
+            profile = await user.profile()
             response = profile.mutual_guilds
             await user.send(response)
         elif not message.guild:
