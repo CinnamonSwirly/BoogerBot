@@ -253,9 +253,9 @@ async def rps(ctx, selection='play'):
 
             # Construct the game's prompt and get ready for the player's selection.
             prompt_message, player_pick = \
-                emoji_prompt(context=ctx, starting_message="Oh you wanna go, huh? Choose your weapon then:",
-                             starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
-                             "so I stopped.", timeout_value=60)
+                await emoji_prompt(context=ctx, starting_message="Oh you wanna go, huh? Choose your weapon then:",
+                                   starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
+                                   "so I stopped.", timeout_value=60)
 
             # We need to make a row for this player in the DB if this is their first time playing
             Boogerball.cursor.execute("SELECT playerID FROM rps WHERE playerID = %(playerID)s",
