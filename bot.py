@@ -218,12 +218,6 @@ async def rps(ctx, selection='play'):
             'scissors': 'scistimes'
         }
 
-        player_dict = {
-            'rock': 0,
-            'paper': 1,
-            'scissors': 2
-        }
-
         # If the player is here to check their stats...
         if str(selection).lower() == 'stats':
             Boogerball.cursor.execute("SELECT * FROM rps WHERE playerID = %(playerID)s",
@@ -383,36 +377,22 @@ async def forbid(ctx, keyword, *args):
 
         # It hasn't been used yet.
         if check is None:
-
             # Get ready to ask the user if they really want to register this word
             prompt = "Do you really want me to create a forbidden word of {} where I say this each time?:" \
-                    "\n> {}".format(keyword, message)
-            prompt_message = await ctx.send(prompt)
-            await prompt_message.add_reaction("✅")
-            await prompt_message.add_reaction("⛔")
+                     "\n> {}".format(keyword, message)
+            emoji_list = ["✅", "⛔"]
+            prompt_message, choice = \
+                await emoji_prompt(context=ctx, starting_message=prompt,
+                                   starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
+                                                                              "so I stopped.", timeout_value=60,
+                                   success_message="Drumroll please...")
 
-            # Wait for the author to react back to the message
-            def check_prompt(reaction, user):
-                return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '⛔')
+            if choice == 0:
+                response = "I would have added this if my owner would finish the function."
+            else:
+                response = "Changed your mind? Okie dokie."
 
-            try:
-                reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check_prompt)
-
-                if str(reaction.emoji) == '✅':
-                    response = "I would have added this if my owner would finish the function."
-                elif str(reaction.emoji) == '⛔':
-                    response = "Changed your mind? Okie dokie."
-                else:
-                    response = "Something's not right. I'll tell my owner."
-
-                await prompt_message.clear_reactions()
-                await prompt_message.edit(content=response)
-
-            except asyncio.TimeoutError:
-                response = "I didn't hear back from you in time, so I canceled this request."
-                await prompt_message.clear_reactions()
-                await prompt_message.edit(content=response, suppress=True, delete_after=60)
-
+            prompt_message.edit(content=response)
 
             # Boogerball.cursor.execute("INSERT INTO forbiddenwords"
             #                           "(word, status, timesused, message)"
