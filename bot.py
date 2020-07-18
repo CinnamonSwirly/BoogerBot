@@ -425,9 +425,9 @@ async def admin(message):
                        'want to configure options for.'
             await message.send(response)
         else:
-            guild = message.author.guild.name
-            user = bot.get_user(message.author.id)
-            response = 'This would have started the admin console for {}!'.format(guild)
+            guild = message.author.guild
+            user = message.author
+            response = 'This would have started the admin console for {}!'.format(guild.name)
             await user.send(response)
 
 
