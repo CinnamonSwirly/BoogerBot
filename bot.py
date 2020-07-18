@@ -416,7 +416,7 @@ async def forbid(ctx, keyword, *args):
 @bot.command(name='admin', help='Allows setup of various commands and permissions in the bot. Done through DMs.')
 async def admin(message):
     if message.author != bot.user:
-        if message.author.dm_channel.id is not None:
+        if message.author.dm_channel is not None and message.channel is not None:
             response = 'This command cannot be called straight from DMs. Please use this command in the server you ' \
                        'want to configure options for.'
             await message.send(response)
