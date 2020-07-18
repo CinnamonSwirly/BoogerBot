@@ -426,8 +426,9 @@ async def admin(message):
             await message.send(response)
         else:
             guild = message.author.guild.name
-            response = 'This would have started the admin console for {guild}!'
-            await message.send(response)
+            user = bot.get_user(message.author.id)
+            response = 'This would have started the admin console for {}!'.format(guild)
+            await user.send(response)
 
 
 @bot.event
