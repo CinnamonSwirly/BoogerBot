@@ -417,8 +417,9 @@ async def forbid(ctx, keyword, *args):
 async def admin(message):
     if message.author != bot.user:
         if message.channel.id == message.author.dm_channel.id:
-            response = message.author.guild
-            user = bot.fetch_user(message.author.id)
+            user = bot.get_user(message.author.id)
+            profile = user.profile()
+            response = profile.mutual_guilds
             await user.send(response)
         elif not message.guild:
             pass
