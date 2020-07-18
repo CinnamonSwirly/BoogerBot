@@ -412,7 +412,18 @@ async def admin(message):
         else:
             guild = message.author.guild
             user = message.author
-            response = 'This would have started the admin console for {}!'.format(guild.name)
+            prompt = "Do you want to configure options for {}?".format(guild.name)
+            emoji_list = ["👍", "👎"]
+            prompt_message, choice = \
+                await emoji_prompt(context=user, starting_message=prompt,
+                                   starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
+                                                                              "so I stopped.", timeout_value=60,
+                                   success_message="Drumroll please...")
+
+            if choice == 0:
+                response = "This would start options if my lazy owner would finish it!!"
+            else:
+                response = "Okay, see you later!"
             await user.send(response)
 
 
