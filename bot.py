@@ -98,6 +98,30 @@ def tuple_to_str(obj, joinchar):
     return result
 
 
+def emoji_prompt(context, starting_message: str, starting_emoji: list, failure_message: str, timeout_value: int):
+    # Present the message and add the provided emoji as options
+    prompt_message = await context.send(starting_message)
+    for emoji in starting_emoji:
+        await prompt_message.add_reaction(str(emoji))
+
+    # Wait for the player to react back to the message
+    def check_prompt(reaction, user):
+        return user == context.author and str(reaction.emoji) in starting_emoji and reaction.message == prompt_message
+
+    try:
+        reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check_prompt)
+
+        reaction_index = starting_emoji.index(str(reaction.emoji))
+
+        await prompt_message.clear_reactions()
+
+        return prompt_message, reaction_index
+
+    except asyncio.TimeoutError:
+        await prompt_message.clear_reactions()
+        await prompt_message.edit(content=failure_message, suppress=True, delete_after=timeout_value)
+
+
 @bot.event
 async def on_ready():
     global tenor_token
@@ -225,34 +249,13 @@ async def rps(ctx, selection='play'):
         # If not, then the player must be here to play...
         elif str(selection).lower() == 'play':
 
+            emoji_list = ["✊", "✋", "✌"]
+
             # Construct the game's prompt and get ready for the player's selection.
-            prompt = "Oh you wanna go, huh? Choose your weapon then:"
-            prompt_message = await ctx.send(prompt)
-            await prompt_message.add_reaction("✊")
-            await prompt_message.add_reaction("✋")
-            await prompt_message.add_reaction("✌")
-
-            # Wait for the player to react back to the message
-            def check_prompt(reaction, user):
-                return user == ctx.author and \
-                       (str(reaction.emoji) == '✊' or str(reaction.emoji) == '✋' or str(reaction.emoji) == '✌')
-
-            try:
-                reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check_prompt)
-
-                if str(reaction.emoji) == '✊':
-                    player_pick = player_dict['rock']
-                elif str(reaction.emoji) == '✋':
-                    player_pick = player_dict['paper']
-                elif str(reaction.emoji) == '✌':
-                    player_pick = player_dict['scissors']
-
-                await prompt_message.clear_reactions()
-
-            except asyncio.TimeoutError:
-                response = "I didn't hear back from you in time, so I stopped this game."
-                await prompt_message.clear_reactions()
-                await prompt_message.edit(content=response, suppress=True, delete_after=60)
+            prompt_message, player_pick = \
+                emoji_prompt(context=ctx, starting_message="Oh you wanna go, huh? Choose your weapon then:",
+                             starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
+                             "so I stopped.", timeout_value=60)
 
             # We need to make a row for this player in the DB if this is their first time playing
             Boogerball.cursor.execute("SELECT playerID FROM rps WHERE playerID = %(playerID)s",
