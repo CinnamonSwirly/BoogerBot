@@ -98,7 +98,8 @@ def tuple_to_str(obj, joinchar):
     return result
 
 
-async def emoji_prompt(context, starting_message: str, starting_emoji: list, failure_message: str, timeout_value: int):
+async def emoji_prompt(context, starting_message: str, starting_emoji: list, success_message: str,
+                       failure_message: str, timeout_value: int):
     # Present the message and add the provided emoji as options
     prompt_message = await context.send(starting_message)
     for emoji in starting_emoji:
@@ -115,6 +116,8 @@ async def emoji_prompt(context, starting_message: str, starting_emoji: list, fai
         reaction_index = starting_emoji.index(str(reaction.emoji))
 
         await prompt_message.clear_reactions()
+
+        await prompt_message.edit(content=success_message)
 
         return prompt_message, reaction_index
 
@@ -256,7 +259,7 @@ async def rps(ctx, selection='play'):
             prompt_message, player_pick = \
                 await emoji_prompt(context=ctx, starting_message="Oh you wanna go, huh? Choose your weapon then:",
                                    starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
-                                   "so I stopped.", timeout_value=60)
+                                   "so I stopped.", timeout_value=60, success_message="Drumroll please...")
 
             if player_pick is not None:
                 # We need to make a row for this player in the DB if this is their first time playing
