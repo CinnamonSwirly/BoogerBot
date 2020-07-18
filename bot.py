@@ -413,6 +413,19 @@ async def forbid(ctx, keyword, *args):
         # TODO: Query SQL to ensure keyword does not have a row in ForbiddenWords
 
 
+@bot.command(name='admin', help='Allows setup of various commands and permissions in the bot. Done through DMs.')
+async def admin(message):
+    if message.author != bot.user:
+        if message.channel.id == message.author.dm_channel.id:
+            response = message.author.guild
+            user = bot.fetch_user(message.author.id)
+            await user.send(response)
+        elif not message.guild:
+            pass
+        else:
+            pass
+
+
 @bot.event
 async def on_message(message):
     if message.author != bot.user:
