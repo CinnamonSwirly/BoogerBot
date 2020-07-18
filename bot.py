@@ -107,8 +107,12 @@ async def emoji_prompt(context, starting_message: str, starting_emoji: list, suc
 
     # Wait for the player to react back to the message
     def check_prompt(reaction, user):
-        return user == context.author and str(reaction.emoji) in starting_emoji \
-               and reaction.message.id == prompt_message.id
+        if type(context).__name__ == 'Member':
+            compare_user = context
+        else:
+            compare_user = context.author
+        return user == compare_user and str(reaction.emoji) in starting_emoji \
+            and reaction.message.id == prompt_message.id
 
     try:
         reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check_prompt)
