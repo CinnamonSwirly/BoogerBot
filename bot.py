@@ -392,7 +392,7 @@ async def forbid(ctx, keyword, *args):
             else:
                 response = "Changed your mind? Okie dokie."
 
-            prompt_message.edit(content=response)
+            await prompt_message.edit(content=response)
 
             # Boogerball.cursor.execute("INSERT INTO forbiddenwords"
             #                           "(word, status, timesused, message)"
