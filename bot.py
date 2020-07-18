@@ -99,7 +99,25 @@ def tuple_to_str(obj, joinchar):
 
 
 async def emoji_prompt(context, starting_message: str, starting_emoji: list, success_message: str,
-                       failure_message: str, timeout_value: int):
+                       failure_message: str, timeout_value: int, direct_message: bool = False):
+    """
+    Presents a message with emoji for the user to react. Returns the message used for the selection and the index of
+    the provided starting_emoji list that corresponds to the user selection.
+    :param context: Must be a Message or Member from the Discord API, Member is used when using direct messages
+    :param starting_message: The initial message the user will be shown to help them choose options
+    :param starting_emoji: A list of emojis in string format that the user must choose from
+    :param success_message: The prompted message will be edited to show this if the user picks something
+    :param failure_message: The prompted message will be edited to show this if the user does not pick anything
+    :param timeout_value: The time to wait for the user to pick an emoji before showing the failure_message
+    :param direct_message: A boolean to signal the function if we're in a DM.
+    :return: Returns a discord.py Message object and an int
+    """
+    # If the context sent is a user instead of a message, we must change how the check_prompt logic works later.
+    if type(context).__name__ == 'Member':
+        compare_user = context
+    else:
+        compare_user = context.author
+
     # Present the message and add the provided emoji as options
     prompt_message = await context.send(starting_message)
     for emoji in starting_emoji:
@@ -107,10 +125,6 @@ async def emoji_prompt(context, starting_message: str, starting_emoji: list, suc
 
     # Wait for the player to react back to the message
     def check_prompt(reaction, user):
-        if type(context).__name__ == 'Member':
-            compare_user = context
-        else:
-            compare_user = context.author
         return user == compare_user and str(reaction.emoji) in starting_emoji \
             and reaction.message.id == prompt_message.id
 
@@ -119,7 +133,9 @@ async def emoji_prompt(context, starting_message: str, starting_emoji: list, suc
 
         reaction_index = starting_emoji.index(str(reaction.emoji))
 
-        await prompt_message.clear_reactions()
+        if direct_message is False:
+            # You can't do this in a DM, so only do this if not in a DM.
+            await prompt_message.clear_reactions()
 
         await prompt_message.edit(content=success_message)
 
@@ -422,7 +438,7 @@ async def admin(message):
                 await emoji_prompt(context=user, starting_message=prompt,
                                    starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
                                                                               "so I stopped.", timeout_value=60,
-                                   success_message="Drumroll please...")
+                                   success_message="Drumroll please...", direct_message=True)
 
             if choice == 0:
                 response = "This would start options if my lazy owner would finish it!!"
