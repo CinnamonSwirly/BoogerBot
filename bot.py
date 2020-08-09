@@ -287,6 +287,8 @@ async def rps(ctx, selection='play'):
                                               "(%(playerID)s, 0, 0, 0, 0, 0, 0, 0)",
                                               {'playerID': str(ctx.message.author.id)})
 
+                await ctx.send("Checked to see if you had an entry in the score table...")
+
                 # Let the bot pick, too!
                 bots_pick = random.randint(0, 2)
 
@@ -298,6 +300,8 @@ async def rps(ctx, selection='play'):
                     """).format(
                     player_pick_column=sql.Identifier(player_sql_pick))
                 Boogerball.cursor.execute(player_pick_sql)
+
+                await ctx.send("Logged what you picked...")
 
                 # The player and bot have picked the same thing, tie game!
                 if bots_pick == player_pick:
@@ -324,6 +328,8 @@ async def rps(ctx, selection='play'):
                         print("Player {} has lost a game of rps, updating...".format(ctx.message.author.id))
                         Boogerball.cursor.execute("UPDATE rps SET losecount = losecount + 1, streak = 0 WHERE "
                                                   "playerID = %(playerID)s", {'playerID': str(ctx.message.author.id)})
+
+                await ctx.send("Determined the winner...")
 
                 await prompt_message.edit(content=bots_response)
 
