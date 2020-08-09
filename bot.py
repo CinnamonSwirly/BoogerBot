@@ -421,9 +421,8 @@ async def forbid(ctx, keyword, *args):
 async def spank(ctx, number = 1):
     async with ctx.channel.typing():
         if hasattr(ctx, 'raw_mentions'):
-            for member in ctx.raw_mentions:
-                await ctx.send("You mentioned someone, but I don't know how to spank yet.")
-                await ctx.send(str(member))
+            await ctx.send("You mentioned someone, but I don't know how to spank yet.")
+            await ctx.send(str(ctx.raw_mentions))
         else:
             await ctx.send("You didn't mention anyone! How will I ever know where to direct this frustration?!")
 
