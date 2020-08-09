@@ -420,9 +420,11 @@ async def forbid(ctx, keyword, *args):
 @bot.command(name='spank', help='Adds a spank to the user, can be used for many purposes!')
 async def spank(ctx, number = 1):
     async with ctx.channel.typing():
-        if ctx.mentions is not None:
-            for member in ctx.mentions:
-                await ctx.send(member.id)
+        if ctx.raw_mentions is not None:
+            for member in ctx.raw_mentions:
+                await ctx.send(member)
+        else:
+            await ctx.send("You didn't mention anyone! How will I ever know where to direct this frustration?!")
 
 
 @bot.command(name='admin', help='Allows setup of various commands and permissions in the bot. Done through DMs.')
