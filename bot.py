@@ -420,7 +420,7 @@ async def forbid(ctx, keyword, *args):
 @bot.command(name='spank', help='Adds a spank to the user, can be used for many purposes!')
 async def spank(ctx, target, number = 1):
     async with ctx.channel.typing():
-        await ctx.send(target)
+        await ctx.send(target.id)
 
 
 @bot.command(name='admin', help='Allows setup of various commands and permissions in the bot. Done through DMs.')
