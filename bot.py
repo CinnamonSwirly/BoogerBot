@@ -421,50 +421,51 @@ async def forbid(ctx, keyword, *args):
 async def spank(ctx):
     async with ctx.channel.typing():
         if hasattr(ctx.message, 'raw_mentions'):
-            await ctx.send("You asked me to spank someone, but I don't know how to spank yet.")
-            for member_id in ctx.message.raw_mentions:
-                guild = ctx.author.guild
+            if len(ctx.message.raw_mentions) > 0:
+                await ctx.send("You asked me to spank someone, but I don't know how to spank yet.")
+                for member_id in ctx.message.raw_mentions:
+                    guild = ctx.author.guild
 
-                # Has this person been spanked before?
-                Boogerball.cursor.execute("SELECT ID FROM spanks WHERE ID = %(ID)s AND guild = %(guild)s",
-                                          {'ID': str(member_id), 'guild': str(guild.id)})
-                check = Boogerball.cursor.fetchall()
-
-                # Make a new row if this is the first time this person has been spanked.
-                if len(check) == 0:
-                    Boogerball.cursor.execute("INSERT INTO spanks (ID, guild, spanks) VALUES "
-                                              "(%(ID)s, %(guild)s, 1)",
+                    # Has this person been spanked before?
+                    Boogerball.cursor.execute("SELECT ID FROM spanks WHERE ID = %(ID)s AND guild = %(guild)s",
                                               {'ID': str(member_id), 'guild': str(guild.id)})
+                    check = Boogerball.cursor.fetchall()
 
-                # Add to the spanks count if they've been here before.
-                else:
-                    Boogerball.cursor.execute("UPDATE spanks SET spanks = spanks + 1 "
-                                              "WHERE ID = %(ID)s AND guild = %(guild)s",
-                                              {'ID': str(member_id), 'guild': str(guild.id)})
+                    # Make a new row if this is the first time this person has been spanked.
+                    if len(check) == 0:
+                        Boogerball.cursor.execute("INSERT INTO spanks (ID, guild, spanks) VALUES "
+                                                  "(%(ID)s, %(guild)s, 1)",
+                                                  {'ID': str(member_id), 'guild': str(guild.id)})
 
-                # Now get how many spanks they have in total.
-                Boogerball.cursor.execute("SELECT spanks FROM spanks WHERE ID = %(ID)s",
-                                          {'ID': str(member_id)})
-                stats = Boogerball.cursor.fetchone()
-                spanks = stats[0]
+                    # Add to the spanks count if they've been here before.
+                    else:
+                        Boogerball.cursor.execute("UPDATE spanks SET spanks = spanks + 1 "
+                                                  "WHERE ID = %(ID)s AND guild = %(guild)s",
+                                                  {'ID': str(member_id), 'guild': str(guild.id)})
 
-                # Let's have a few funny phrases to play with.
-                list_spank_phrases = [
-                    "Lo! The spank bell doth toll for <@!{}>! Bask in the sound of a hand smacking the ass!"
-                    " It has rung {} time{}!".format(str(member_id), str(spanks), check_plural(spanks)),
-                    "Soups on! One spank for <@!{}>! Comin' right up! It's been served for them () time{}!"
-                    .format(str(member_id), str(spanks), check_plural(spanks)),
-                    "THWACK! My favorite sound... And right now it's coming from <@!{}>'s ass!"
-                    " I've heard it {} time{} so far!".format(str(member_id), str(spanks), check_plural(spanks)),
-                    "M-M-M-MONSTER SPANK! GET DISCIPLINED <@!{}>! YOU'VE BEEN TAUGHT THIS LESSON {} TIME{}!"
-                    .format(str(member_id), str(spanks), check_plural(spanks))
-                ]
+                    # Now get how many spanks they have in total.
+                    Boogerball.cursor.execute("SELECT spanks FROM spanks WHERE ID = %(ID)s",
+                                              {'ID': str(member_id)})
+                    stats = Boogerball.cursor.fetchone()
+                    spanks = stats[0]
 
-                # Inform the victim of their spank!
-                await ctx.send(list_spank_phrases[random.randint(0, (len(list_spank_phrases) - 1))])
+                    # Let's have a few funny phrases to play with.
+                    list_spank_phrases = [
+                        "Lo! The spank bell doth toll for <@!{}>! Bask in the sound of a hand smacking the ass!"
+                        " It has rung {} time{}!".format(str(member_id), str(spanks), check_plural(spanks)),
+                        "Soups on! One spank for <@!{}>! Comin' right up! It's been served for them () time{}!"
+                        .format(str(member_id), str(spanks), check_plural(spanks)),
+                        "THWACK! My favorite sound... And right now it's coming from <@!{}>'s ass!"
+                        " I've heard it {} time{} so far!".format(str(member_id), str(spanks), check_plural(spanks)),
+                        "M-M-M-MONSTER SPANK! GET DISCIPLINED <@!{}>! YOU'VE BEEN TAUGHT THIS LESSON {} TIME{}!"
+                        .format(str(member_id), str(spanks), check_plural(spanks))
+                    ]
 
-        else:
-            await ctx.send("You didn't mention anyone! How will I ever know where to direct this frustration?!")
+                    # Inform the victim of their spank!
+                    await ctx.send(list_spank_phrases[random.randint(0, (len(list_spank_phrases) - 1))])
+
+            else:
+                await ctx.send("You didn't mention anyone! How will I ever know where to direct this frustration?!")
 
 
 @bot.command(name='admin', help='Allows setup of various commands and permissions in the bot. Done through DMs.')
