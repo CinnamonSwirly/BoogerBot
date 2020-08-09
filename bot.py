@@ -422,7 +422,6 @@ async def spank(ctx):
     async with ctx.channel.typing():
         if hasattr(ctx.message, 'raw_mentions'):
             if len(ctx.message.raw_mentions) > 0:
-                await ctx.send("You asked me to spank someone, but I don't know how to spank yet.")
                 for member_id in ctx.message.raw_mentions:
                     guild = ctx.author.guild
 
