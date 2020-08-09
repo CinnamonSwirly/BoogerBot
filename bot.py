@@ -466,6 +466,19 @@ async def spank(ctx):
                     # Inform the victim of their spank!
                     await ctx.send(list_spank_phrases[random.randint(0, (len(list_spank_phrases) - 1))])
 
+                    # Grab a spanking GIF from Tenor
+                    spank_gif_search_terms = [
+                        "spank", "bend over spank", "punishment spank", "discipline spank", "spanking", "ass whoopin",
+                        "ass smack"
+                    ]
+                    spank_gifs = tenor_get(
+                        spank_gif_search_terms[random.randint(0, (len(spank_gif_search_terms) - 1))], 6)
+
+                    pick_a_gif = \
+                        spank_gifs['results'][random.randint(0, len(spank_gifs['results']))]['media'][0]['gif']['url']
+
+                    await ctx.send(pick_a_gif)
+
             else:
                 await ctx.send("You didn't mention anyone! How will I ever know where to direct this frustration?!")
 
