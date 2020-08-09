@@ -417,6 +417,12 @@ async def forbid(ctx, keyword, *args):
         # TODO: Query SQL to ensure keyword does not have a row in ForbiddenWords
 
 
+@bot.command(name='spank', help='Adds a spank to the user, can be used for many purposes!')
+async def spank(ctx, target, number = 1):
+    async with ctx.channel.typing():
+        ctx.send(target)
+
+
 @bot.command(name='admin', help='Allows setup of various commands and permissions in the bot. Done through DMs.')
 async def admin(message):
     if message.author != bot.user:
