@@ -42,11 +42,14 @@ Boogerball = DatabaseConnection()
 # TODO: Write a function to save current attributes of a forbidden word to SQL
 
 
-def check_plural(number):
+def check_plural(number, caps: bool = False):
     if number == 1:
         return ""
     else:
-        return "s"
+        if caps:
+            return "S"
+        else:
+            return "s"
 
 
 def tenor_get(search_term, limit):
@@ -457,7 +460,7 @@ async def spank(ctx):
                         "THWACK! My favorite sound... And right now it's coming from <@!{}>'s ass!"
                         " I've heard it {} time{} so far!".format(str(member_id), str(spanks), check_plural(spanks)),
                         "M-M-M-MONSTER SPANK! GET DISCIPLINED <@!{}>! YOU'VE BEEN TAUGHT THIS LESSON {} TIME{}!"
-                        .format(str(member_id), str(spanks), check_plural(spanks))
+                        .format(str(member_id), str(spanks), check_plural(spanks, caps=True))
                     ]
 
                     # Inform the victim of their spank!
