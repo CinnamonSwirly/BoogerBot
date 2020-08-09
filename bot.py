@@ -420,9 +420,9 @@ async def forbid(ctx, keyword, *args):
 @bot.command(name='spank', help='Adds a spank to the user, can be used for many purposes!')
 async def spank(ctx):
     async with ctx.channel.typing():
-        if hasattr(ctx, 'raw_mentions'):
+        if hasattr(ctx.message, 'raw_mentions'):
             await ctx.send("You asked me to spank someone, but I don't know how to spank yet.")
-            await ctx.send(str(ctx.raw_mentions))
+            await ctx.send(str(ctx.message.raw_mentions))
         else:
             await ctx.send("You didn't mention anyone! How will I ever know where to direct this frustration?!")
 
