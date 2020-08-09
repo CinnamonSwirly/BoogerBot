@@ -475,7 +475,8 @@ async def spank(ctx):
                         spank_gif_search_terms[random.randint(0, (len(spank_gif_search_terms) - 1))], 6)
 
                     pick_a_gif = \
-                        spank_gifs['results'][random.randint(0, len(spank_gifs['results']))]['media'][0]['gif']['url']
+                        spank_gifs['results'][random.randint(0, len(spank_gifs['results']) - 1)] \
+                        ['media'][0]['gif']['url']
 
                     await ctx.send(pick_a_gif)
 
