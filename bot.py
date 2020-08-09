@@ -452,7 +452,7 @@ async def spank(ctx):
                     list_spank_phrases = [
                         "Lo! The spank bell doth toll for <@!{}>! Bask in the sound of a hand smacking the ass!"
                         " It has rung {} time{}!".format(str(member_id), str(spanks), check_plural(spanks)),
-                        "Soups on! One spank for <@!{}>! Comin' right up! It's been served for them () time{}!"
+                        "Soups on! One spank for <@!{}>! Comin' right up! It's been served for them {} time{}!"
                         .format(str(member_id), str(spanks), check_plural(spanks)),
                         "THWACK! My favorite sound... And right now it's coming from <@!{}>'s ass!"
                         " I've heard it {} time{} so far!".format(str(member_id), str(spanks), check_plural(spanks)),
