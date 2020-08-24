@@ -5,7 +5,6 @@ import requests
 import json
 import re
 import sys
-import datetime
 import psycopg2
 import asyncio
 from psycopg2 import sql
@@ -418,6 +417,70 @@ async def forbid(ctx, keyword, *args):
             #                           {'keyword': keyword, 'message': message})
 
         # TODO: Query SQL to ensure keyword does not have a row in ForbiddenWords
+
+
+@bot.command(name='hug', help='Adds a spank to the user, can be used for many purposes!')
+async def hug(ctx):
+    async with ctx.channel.typing():
+        if hasattr(ctx.message, 'raw_mentions'):
+            if len(ctx.message.raw_mentions) > 0:
+                for member_id in ctx.message.raw_mentions:
+                    guild = ctx.author.guild
+
+                    # Has this person been spanked before?
+                    Boogerball.cursor.execute("SELECT ID FROM hugs WHERE ID = %(ID)s AND guild = %(guild)s",
+                                              {'ID': str(member_id), 'guild': str(guild.id)})
+                    check = Boogerball.cursor.fetchall()
+
+                    # Make a new row if this is the first time this person has been spanked.
+                    if len(check) == 0:
+                        Boogerball.cursor.execute("INSERT INTO hugs (ID, guild, hugs) VALUES "
+                                                  "(%(ID)s, %(guild)s, 1)",
+                                                  {'ID': str(member_id), 'guild': str(guild.id)})
+
+                    # Add to the spanks count if they've been here before.
+                    else:
+                        Boogerball.cursor.execute("UPDATE hugs SET hugs = hugs + 1 "
+                                                  "WHERE ID = %(ID)s AND guild = %(guild)s",
+                                                  {'ID': str(member_id), 'guild': str(guild.id)})
+
+                    # Now get how many spanks they have in total.
+                    Boogerball.cursor.execute("SELECT hugs FROM hugs WHERE ID = %(ID)s",
+                                              {'ID': str(member_id)})
+                    stats = Boogerball.cursor.fetchone()
+                    hugs = stats[0]
+
+                    # Let's have a few funny phrases to play with.
+                    list_hug_phrases = [
+                        "Special delivery for <@!{}>! Get hugged, nerd!"
+                        .format(str(member_id)),
+                        "Soups on! One hug for <@!{}>! Comin' right up!"
+                        .format(str(member_id)),
+                        "Guess who's getting a hug? <@!{}>!"
+                        .format(str(member_id)),
+                        "Extra! Extra! Read all about how <@!{}> is a cutie who got hugged!"
+                        .format(str(member_id))
+                    ]
+
+                    # Inform the victim of their spank!
+                    await ctx.send(list_hug_phrases[random.randint(0, (len(list_hug_phrases) - 1))])
+
+                    # Grab a spanking GIF from Tenor
+                    hug_gif_search_terms = [
+                        "hug anime", "hug cute", "hug moe anime", "hugging anime", "snuggle cuddle hug cat love",
+                        "tackle hug anime", "anime hugs"
+                    ]
+                    hug_gifs = tenor_get(
+                        hug_gif_search_terms[random.randint(0, (len(hug_gif_search_terms) - 1))], 6)
+
+                    pick_a_gif = \
+                        hug_gifs['results'][random.randint(0, len(hug_gifs['results']) - 1)] \
+                        ['media'][0]['gif']['url']
+
+                    await ctx.send(pick_a_gif)
+
+            else:
+                await ctx.send("You didn't mention anyone! How will I ever know where to direct this frustration?!")
 
 
 @bot.command(name='spank', help='Adds a spank to the user, can be used for many purposes!')
