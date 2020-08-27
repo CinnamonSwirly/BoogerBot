@@ -7,6 +7,7 @@ import re
 import sys
 import psycopg2
 import asyncio
+import time
 from psycopg2 import sql
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -26,6 +27,7 @@ bot = commands.Bot(command_prefix=command_prefix, owner_id=owner)
 
 forbidden_words = []
 
+start_time = time.time()
 
 class DatabaseConnection:
     def __init__(self):
@@ -162,7 +164,13 @@ async def on_command_error(ctx, error):
     error_parent_name = error.__class__.__name__
 
     if isinstance(error, commands.errors.CommandInvokeError):
-        response = on_command_error_message_CommandInvokeError
+        # This error happens when the bot has been running too long.
+        if "AdminShutdown" in error:
+            await ctx.send("I need a moment to think, can you please try again in a minute or so?")
+            await bot.close()
+            bot.run(str(sys.argv[1]))
+        else:
+            response = on_command_error_message_CommandInvokeError
     elif isinstance(error, commands.errors.CommandNotFound):
         response = False
     elif isinstance(error, commands.errors.CheckFailure):
@@ -195,6 +203,20 @@ async def ping(ctx):
 async def stop(ctx):
     response = 'Ok bye!'
     await ctx.send(response)
+    await bot.close()
+
+
+@bot.command(name='stats', hidden=True, aliases=['stat', 'uptime'])
+@commands.check(check_if_owner)
+async def stats(ctx):
+    uptime = round(time.time() - start_time)
+    end_time_seconds = str(uptime % 60)
+    end_time_minutes = str((uptime // 60) % 60)
+    end_time_hours = str(((uptime // 60) // 60) % 24)
+    end_time_days = str(((uptime // 60) // 60) // 24)
+    end_time_string = "System Uptime: {} days, {} hours, {} minutes, {} seconds"\
+        .format(end_time_days, end_time_hours, end_time_minutes, end_time_seconds)
+    await ctx.send(end_time_string)
     await bot.close()
 
 
@@ -419,7 +441,7 @@ async def forbid(ctx, keyword, *args):
         # TODO: Query SQL to ensure keyword does not have a row in ForbiddenWords
 
 
-@bot.command(name='hug', help='Adds a spank to the user, can be used for many purposes!')
+@bot.command(name='hug', help='Sends the user a hug GIF!')
 async def hug(ctx):
     async with ctx.channel.typing():
         if hasattr(ctx.message, 'raw_mentions'):
@@ -427,24 +449,24 @@ async def hug(ctx):
                 for member_id in ctx.message.raw_mentions:
                     guild = ctx.author.guild
 
-                    # Has this person been spanked before?
+                    # Has this person been hugged before?
                     Boogerball.cursor.execute("SELECT ID FROM hugs WHERE ID = %(ID)s AND guild = %(guild)s",
                                               {'ID': str(member_id), 'guild': str(guild.id)})
                     check = Boogerball.cursor.fetchall()
 
-                    # Make a new row if this is the first time this person has been spanked.
+                    # Make a new row if this is the first time this person has been hugged.
                     if len(check) == 0:
                         Boogerball.cursor.execute("INSERT INTO hugs (ID, guild, hugs) VALUES "
                                                   "(%(ID)s, %(guild)s, 1)",
                                                   {'ID': str(member_id), 'guild': str(guild.id)})
 
-                    # Add to the spanks count if they've been here before.
+                    # Add to the hug count if they've been here before.
                     else:
                         Boogerball.cursor.execute("UPDATE hugs SET hugs = hugs + 1 "
                                                   "WHERE ID = %(ID)s AND guild = %(guild)s",
                                                   {'ID': str(member_id), 'guild': str(guild.id)})
 
-                    # Now get how many spanks they have in total.
+                    # Now get how many hugs they have in total.
                     Boogerball.cursor.execute("SELECT hugs FROM hugs WHERE ID = %(ID)s",
                                               {'ID': str(member_id)})
                     stats = Boogerball.cursor.fetchone()
@@ -462,10 +484,10 @@ async def hug(ctx):
                         .format(str(member_id))
                     ]
 
-                    # Inform the victim of their spank!
+                    # Inform the victim of their hug!
                     await ctx.send(list_hug_phrases[random.randint(0, (len(list_hug_phrases) - 1))])
 
-                    # Grab a spanking GIF from Tenor
+                    # Grab a hugging GIF from Tenor
                     hug_gif_search_terms = [
                         "hug anime", "hug cute", "hug moe anime", "hugging anime", "snuggle cuddle hug cat love",
                         "tackle hug anime", "anime hugs"
