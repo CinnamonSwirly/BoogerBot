@@ -466,12 +466,6 @@ async def hug(ctx):
                                                   "WHERE ID = %(ID)s AND guild = %(guild)s",
                                                   {'ID': str(member_id), 'guild': str(guild.id)})
 
-                    # Now get how many hugs they have in total.
-                    Boogerball.cursor.execute("SELECT hugs FROM hugs WHERE ID = %(ID)s",
-                                              {'ID': str(member_id)})
-                    stats = Boogerball.cursor.fetchone()
-                    hugs = stats[0]
-
                     # Let's have a few funny phrases to play with.
                     list_hug_phrases = [
                         "Special delivery for <@!{}>! Get hugged, nerd!"
