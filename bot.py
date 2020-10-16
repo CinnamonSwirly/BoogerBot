@@ -171,7 +171,7 @@ async def emoji_menu(context, starting_message: str, starting_emoji: list, succe
         await prompt_message.edit(content=failure_message, suppress=True, delete_after=timeout_value)
 
 
-async def admin_menu(author, guild):
+async def admin_menu(context, author, guild):
     class Stop:
         value = 0
 
@@ -183,7 +183,7 @@ async def admin_menu(author, guild):
                                      success_message='Okay!', failure_message='Closing menu due to inactivity.',
                                      timeout_value=120, direct_message=True)
         except discord.ext.commands.CommandInvokeError:
-            await message.send("I need to DM you to do this. Can you please allow DMs for a moment?")
+            await context.send("I need to DM you to do this. Can you please allow DMs for a moment?")
 
         dictionary_choice = {
             0: nsfw_menu,
@@ -644,7 +644,7 @@ async def admin(message):
     if message.author != bot.user:
         guild = message.author.guild
         user = message.author
-        await admin_menu(user, guild)
+        await admin_menu(message, user, guild)
 
 
 @bot.event
