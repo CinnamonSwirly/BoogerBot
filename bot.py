@@ -17,7 +17,6 @@ Reading messages we will be using from the .env file included with the bot
 This method allows editing of the messages without digging through code
 """
 load_dotenv()
-owner = int(os.getenv('OWNER_ID'))
 command_prefix = os.getenv('COMMAND_PREFIX')
 on_command_error_message_GenericMessage = os.getenv('ON_COMMAND_ERROR_MESSAGE_GENERICMESSAGE')
 on_command_error_message_CommandInvokeError = os.getenv('ON_COMMAND_ERROR_MESSAGE_COMMANDINVOKEERROR')
