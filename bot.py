@@ -648,18 +648,7 @@ async def admin(message):
         else:
             guild = message.author.guild
             user = message.author
-            prompt = "Do you want to configure options for {}?".format(guild.name)
-            emoji_list = ["👍", "👎"]
-            prompt_message, choice = \
-                await emoji_menu(context=user, starting_message=prompt,
-                                 starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
-                                                                              "so I stopped.", timeout_value=60,
-                                 success_message="Drumroll please...", direct_message=True)
-            dictionary_choice = {
-                0: await admin_menu(user, guild),
-                1: await user.send("Okay, see you later!")
-            }
-            action = await dictionary_choice[choice]()
+            await admin_menu(user, guild)
 
 
 @bot.event
