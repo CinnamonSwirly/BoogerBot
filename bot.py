@@ -179,7 +179,7 @@ async def emoji_menu(context, starting_message: str, starting_emoji: list, succe
         except asyncio.TimeoutError:
             await prompt_message.clear_reactions()
             await prompt_message.edit(content=failure_message, suppress=True, delete_after=timeout_value)
-    except bot.commands.CommandInvokeError:
+    except discord.ext.commands.CommandInvokeError:
         raise CannotDirectMessage
 
 
@@ -244,7 +244,7 @@ async def on_command_error(ctx, error):
     error_parent_name = error.__class__.__name__
 
     dictionary_error = {
-        "CommandInvokeError": on_command_error_message_CommandInvokeError,
+        "CommandInvokeError": str(on_command_error_message_CommandInvokeError),
         "CommandNotFound": None,
         "CheckFailure": None,
         "MissingRequiredArgument": "I think you forgot to add something there. Check help for info.",
