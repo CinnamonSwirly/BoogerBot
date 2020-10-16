@@ -243,13 +243,10 @@ async def on_ready():
 async def on_command_error(ctx, error):
     error_parent_name = error.__class__.__name__
 
-    print(type(error).__name__)
-    print(type(error.exception).__name__)
-
     dictionary_error = {
         "CommandInvokeError": str(on_command_error_message_CommandInvokeError),
-        "CommandNotFound": None,
-        "CheckFailure": None,
+        "CommandNotFound": False,
+        "CheckFailure": False,
         "MissingRequiredArgument": "I think you forgot to add something there. Check help for info.",
         "BotMissingPermissions": "I don't have enough permissions to do do this! I need to manage emojis and manage"
                                  "messages. :(",
@@ -257,7 +254,10 @@ async def on_command_error(ctx, error):
     }
 
     if error_parent_name in dictionary_error.keys():
-        response = dictionary_error[error_parent_name]
+        if "CannotDirectMessage" in str(error):
+            response = dictionary_error["CannotDirectMessage"]
+        else:
+            response = dictionary_error[error_parent_name]
     else:
         response = False
 
