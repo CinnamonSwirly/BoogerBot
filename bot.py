@@ -108,11 +108,17 @@ def check_if_nsfw(ctx):
     :param ctx: The ID of the guild (or server) the command is being called from
     :return: a boolean 1 or 0. 1 means yes, the server is nsfw, 0 means no, it is not.
     """
-    print(str(ctx.message.guild.id))
+    if isinstance(ctx, discord.ext.commands.Context):
+        ID = ctx.message.guild.id
+    elif isinstance(ctx, discord.Guild):
+        ID = ctx.id
+    else:
+        print(type(ctx))
+        return 0
+
     Boogerball.cursor.execute("SELECT nsfw FROM guilds WHERE ID = %(ID)s",
-                              {'ID': str(ctx.message.guild.id)})
+                              {'ID': str(ID)})
     nsfw = Boogerball.cursor.fetchone()
-    print(nsfw)
     if len(nsfw) == 0:
         return 0
     elif nsfw[0] is True:
@@ -174,6 +180,44 @@ async def emoji_menu(context, starting_message: str, starting_emoji: list, succe
     except asyncio.TimeoutError:
         await prompt_message.clear_reactions()
         await prompt_message.edit(content=failure_message, suppress=True, delete_after=timeout_value)
+
+
+async def admin_menu(author, guild):
+    while True:
+        prompt = 'Options for {}:\n\n🔞: Work with your server\'s NSFW tag\n👋: Close this menu'.format(guild)
+        message, choice = emoji_menu(context=author, starting_message=prompt, starting_emoji=['🔞', '👋'],
+                                     success_message='Working...', failure_message='Closing menu due to inactivity.',
+                                     timeout_value=120, direct_message=True)
+        if choice == 1:
+            return
+        dictionary_choice = {
+            0: nsfw_menu,
+            1: lambda: True is True
+        }
+        dictionary_choice[choice](author, guild)
+
+
+async def nsfw_menu(author, guild):
+    nsfw = check_if_nsfw(guild)
+    dictionary_nsfw = {
+        0: "OFF",
+        1: "ON"
+    }
+    prompt = 'The NSFW tag for {} is currently: {}\n\nWhen this is ON, members can use NSFW commands.\n' \
+             'What do you want to do with it?\n\n🔄: Switch the NSFW tag\n' \
+             '🔙: Go back to the main menu'.format(guild, dictionary_nsfw[nsfw])
+    message, choice = emoji_menu(context=author, starting_message=prompt, starting_emoji=['🔄', '🔙'],
+                                 success_message='Done!', failure_message='Closing menu due to inactivity.',
+                                 timeout_value=120, direct_message=True)
+    if choice is 0:
+        new_nsfw = abs(nsfw - 1)
+        dictionary_new_nsfw = {
+            0: False,
+            1: True
+        }
+        Boogerball.cursor.execute("UPDATE guild SET nsfw = %(nsfw_flag)s WHERE ID = %(guild_id)s",
+                                  {'nsfw_flag': str(dictionary_new_nsfw[new_nsfw]),
+                                   'guild_id': str(guild.id)})
 
 
 @bot.event
@@ -605,12 +649,11 @@ async def admin(message):
                                  starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
                                                                               "so I stopped.", timeout_value=60,
                                  success_message="Drumroll please...", direct_message=True)
-
-            if choice == 0:
-                response = "This would start options if my lazy owner would finish it!!"
-            else:
-                response = "Okay, see you later!"
-            await user.send(response)
+            dictionary_choice = {
+                0: await admin_menu(user, guild),
+                1: await user.send("Okay, see you later!")
+            }
+            dictionary_choice[choice]()
 
 
 @bot.event
