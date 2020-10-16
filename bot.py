@@ -283,7 +283,7 @@ async def stats(ctx):
     await bot.close()
 
 
-@bot.command(name='boop', help='boop someone!')
+@bot.command(name='boop', help='boop someone!', hidden=True)
 async def boop(ctx, booped):
     gif = tenor_get("cute nose boop", 12)
     if gif is None:
@@ -294,7 +294,7 @@ async def boop(ctx, booped):
     await ctx.send(response)
 
 
-@bot.command(name='wiki', aliases=['wikipedia', 'lookup'], help='Looks up something on wikipedia.')
+@bot.command(name='wiki', aliases=['wikipedia', 'lookup'], help='Tries to look up something on wikipedia.')
 async def wiki(ctx, *args):
     async with ctx.channel.typing():
         if len(args) == 1:
@@ -309,7 +309,7 @@ async def wiki(ctx, *args):
         await ctx.send(response)
 
 
-@bot.command(name='rps', help='Rock paper scissors! Start a game with rps, or use rps stats to check yourself!')
+@bot.command(name='rps', help='Rock paper scissors! Use "rps stats" for stats')
 async def rps(ctx, selection='play'):
     async with ctx.channel.typing():
 
@@ -424,7 +424,7 @@ async def rps(ctx, selection='play'):
             await ctx.send(bots_response)
 
 
-@bot.command(name='roll', help='rolls a dice. Syntax is roll d2 up to d1000')
+@bot.command(name='roll', help='rolls a dice. Syntax is roll <number> d<sides of die>')
 async def roll(ctx, *args):
     async with ctx.channel.typing():
         if args is not None:
@@ -465,7 +465,8 @@ async def roll(ctx, *args):
 
 @bot.command(name='forbid', help='Will set up a trigger so when a word is said, a message is posted. '
                                  'Syntax: forbid cookies AH! Now Im hungry, thanks &user, its only been &time since'
-                                 ' someone reminded me about it. Yall have said it &times now')
+                                 ' someone reminded me about it. Yall have said it &times now',
+             hidden=True)
 async def forbid(ctx, keyword, *args):
     print(keyword)
     print(args)
@@ -562,7 +563,7 @@ async def hug(ctx):
                 await ctx.send("You didn't mention anyone! How will I ever know where to direct this frustration?!")
 
 
-@bot.command(name='spank', help='Adds a spank to the user, can be used for many purposes!')
+@bot.command(name='spank', help='Spanks people you mention. Keeps track, too!')
 @commands.check(check_if_nsfw)
 async def spank(ctx):
     async with ctx.channel.typing():
