@@ -186,31 +186,22 @@ async def on_command_error(ctx, error):
     error_parent_name = error.__class__.__name__
 
     if isinstance(error, commands.errors.CommandInvokeError):
-        # This error happens when the bot has been running too long.
-        if "AdminShutdown" in error:
-            await ctx.send("I need a moment to think, can you please try again in a minute or so?")
-            await bot.close()
-            bot.run(str(sys.argv[1]))
-        else:
-            response = on_command_error_message_CommandInvokeError
+        response = on_command_error_message_CommandInvokeError
     elif isinstance(error, commands.errors.CommandNotFound):
         response = False
     elif isinstance(error, commands.errors.CheckFailure):
-        pass
+        response = False
     elif isinstance(error, commands.errors.MissingRequiredArgument):
         response = 'I think you forgot to add something there. Check help for info.'
     else:
         response = False
-        pass
 
     with open('stderr.log', 'a') as s:
         output = 'Command Error: {}, raised: {} \nDuring: {}\n'.format(error_parent_name, str(error), ctx.invoked_with)
         s.write(output)
 
-    with ctx.channel.typing():
-        if response is False:
-            pass
-        else:
+    if response is not False:
+        with ctx.channel.typing():
             await ctx.send(response)
 
 
