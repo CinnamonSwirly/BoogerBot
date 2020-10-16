@@ -41,7 +41,7 @@ class CustomError(Exception):
 
 
 class CannotDirectMessage(CustomError):
-    name = "CannotDirectMessage"
+    __name__ = "CannotDirectMessage"
     pass
 
 
