@@ -21,7 +21,6 @@ owner = int(os.getenv('OWNER_ID'))
 command_prefix = os.getenv('COMMAND_PREFIX')
 on_command_error_message_GenericMessage = os.getenv('ON_COMMAND_ERROR_MESSAGE_GENERICMESSAGE')
 on_command_error_message_CommandInvokeError = os.getenv('ON_COMMAND_ERROR_MESSAGE_COMMANDINVOKEERROR')
-on_command_error_message_CheckFailure = os.getenv('ON_COMMAND_ERROR_MESSAGE_CHECKFAILURE')
 
 bot = commands.Bot(command_prefix=command_prefix, owner_id=owner)
 
@@ -112,7 +111,10 @@ def check_if_nsfw(server):
     Boogerball.cursor.execute("SELECT nsfw FROM guilds WHERE ID = %(ID)s",
                               {'ID': str(server)})
     nsfw = Boogerball.cursor.fetchone()
-    return bool(nsfw)
+    if nsfw == 't':
+        return 1
+    else:
+        return 0
 
 
 def tuple_to_str(obj, joinchar):
