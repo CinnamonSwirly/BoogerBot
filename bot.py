@@ -243,6 +243,8 @@ async def on_ready():
 async def on_command_error(ctx, error):
     error_parent_name = error.__class__.__name__
 
+    print(type(error).__name__)
+
     dictionary_error = {
         "CommandInvokeError": str(on_command_error_message_CommandInvokeError),
         "CommandNotFound": None,
