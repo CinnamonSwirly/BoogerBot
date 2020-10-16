@@ -185,7 +185,7 @@ async def emoji_menu(context, starting_message: str, starting_emoji: list, succe
 async def admin_menu(author, guild):
     while True:
         prompt = 'Options for {}:\n\n🔞: Work with your server\'s NSFW tag\n👋: Close this menu'.format(guild)
-        message, choice = emoji_menu(context=author, starting_message=prompt, starting_emoji=['🔞', '👋'],
+        message, choice = await emoji_menu(context=author, starting_message=prompt, starting_emoji=['🔞', '👋'],
                                      success_message='Working...', failure_message='Closing menu due to inactivity.',
                                      timeout_value=120, direct_message=True)
         if choice == 1:
@@ -206,7 +206,7 @@ async def nsfw_menu(author, guild):
     prompt = 'The NSFW tag for {} is currently: {}\n\nWhen this is ON, members can use NSFW commands.\n' \
              'What do you want to do with it?\n\n🔄: Switch the NSFW tag\n' \
              '🔙: Go back to the main menu'.format(guild, dictionary_nsfw[nsfw])
-    message, choice = emoji_menu(context=author, starting_message=prompt, starting_emoji=['🔄', '🔙'],
+    message, choice = await emoji_menu(context=author, starting_message=prompt, starting_emoji=['🔄', '🔙'],
                                  success_message='Done!', failure_message='Closing menu due to inactivity.',
                                  timeout_value=120, direct_message=True)
     if choice == 0:
