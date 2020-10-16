@@ -115,7 +115,7 @@ def check_if_nsfw(ctx):
     print(nsfw)
     if len(nsfw) == 0:
         return 0
-    elif 't' in nsfw:
+    elif nsfw[0] is True:
         return 1
     else:
         return 0
