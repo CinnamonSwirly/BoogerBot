@@ -653,7 +653,7 @@ async def admin(message):
                 0: await admin_menu(user, guild),
                 1: await user.send("Okay, see you later!")
             }
-            dictionary_choice[choice]()
+            action = dictionary_choice[choice]()
 
 
 @bot.event
