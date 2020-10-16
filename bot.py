@@ -640,7 +640,7 @@ async def admin(message):
         user = message.author
         try:
             await admin_menu(user, guild)
-        except bot.commands.CommandInvokeError:
+        except discord.ext.commands.CommandInvokeError:
             await message.send("I need to DM you to do this. Can you please allow DMs for a moment?")
 
 
