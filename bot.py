@@ -215,7 +215,7 @@ async def nsfw_menu(author, guild):
             0: False,
             1: True
         }
-        Boogerball.cursor.execute("UPDATE guild SET nsfw = %(nsfw_flag)s WHERE ID = %(guild_id)s",
+        Boogerball.cursor.execute("UPDATE guilds SET nsfw = %(nsfw_flag)s WHERE ID = %(guild_id)s",
                                   {'nsfw_flag': str(dictionary_new_nsfw[new_nsfw]),
                                    'guild_id': str(guild.id)})
 
