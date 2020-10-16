@@ -196,7 +196,7 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.errors.CommandNotFound):
         response = False
     elif isinstance(error, commands.errors.CheckFailure):
-        response = on_command_error_message_CheckFailure
+        pass
     elif isinstance(error, commands.errors.MissingRequiredArgument):
         response = 'I think you forgot to add something there. Check help for info.'
     else:
