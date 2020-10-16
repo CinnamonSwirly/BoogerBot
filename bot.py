@@ -41,7 +41,8 @@ class CustomError(Exception):
 
 
 class CannotDirectMessage(CustomError):
-    super().__init__("User has DMs blocked")
+    def __init__(self):
+        super(CannotDirectMessage, self).__init__("User has DMs blocked")
 
 
 Boogerball = DatabaseConnection()
