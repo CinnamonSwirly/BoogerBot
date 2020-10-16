@@ -29,6 +29,7 @@ forbidden_words = []
 
 start_time = time.time()
 
+
 class DatabaseConnection:
     def __init__(self):
         self.connection = psycopg2.connect(database='boogerball')
@@ -97,13 +98,31 @@ def check_if_owner(ctx):
     return bot.is_owner(ctx.message.author)
 
 
+def check_if_command_allowed(command, server, user):
+    #TODO: Check if the user has permission to execute the command
+    pass
+
+
+def check_if_nsfw(server):
+    """
+    Checks if the server has the NSFW tag enabled. Used to check if certain commands, like spanking, can be run.
+    :param server: The ID of the guild (or server) the command is being called from
+    :return: a boolean 1 or 0. 1 means yes, the server is nsfw, 0 means no, it is not.
+    """
+    Boogerball.cursor.execute("SELECT nsfw FROM guilds WHERE ID = %(ID)s",
+                              {'ID': str(server)})
+    nsfw = Boogerball.cursor.fetchone()
+    return bool(nsfw)
+
+
 def tuple_to_str(obj, joinchar):
     result = "{}".format(joinchar).join(obj)
     return result
 
 
-async def emoji_prompt(context, starting_message: str, starting_emoji: list, success_message: str,
-                       failure_message: str, timeout_value: int, direct_message: bool = False):
+async def emoji_menu(context, starting_message: str, starting_emoji: list, success_message: str,
+                     failure_message: str, timeout_value: int = 60, direct_message: bool = False,
+                     style: str = "custom"):
     """
     Presents a message with emoji for the user to react. Returns the message used for the selection and the index of
     the provided starting_emoji list that corresponds to the user selection.
@@ -114,6 +133,7 @@ async def emoji_prompt(context, starting_message: str, starting_emoji: list, suc
     :param failure_message: The prompted message will be edited to show this if the user does not pick anything
     :param timeout_value: The time to wait for the user to pick an emoji before showing the failure_message
     :param direct_message: A boolean to signal the function if we're in a DM.
+    :param style: Chooses a premade menu, rather than having to specify all parameters to build your own
     :return: Returns a discord.py Message object and an int
     """
     # If the context sent is a user instead of a message, we must change how the check_prompt logic works later.
@@ -190,6 +210,13 @@ async def on_command_error(ctx, error):
             pass
         else:
             await ctx.send(response)
+
+
+@bot.event
+async def on_guild_join(guild):
+    Boogerball.cursor.execute("INSERT INTO guilds (ID, nsfw) VALUES "
+                              "(%(guild)s, 0)",
+                              {'guild': str(guild.id)})
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
@@ -295,8 +322,8 @@ async def rps(ctx, selection='play'):
 
             # Construct the game's prompt and get ready for the player's selection.
             prompt_message, player_pick = \
-                await emoji_prompt(context=ctx, starting_message="Oh you wanna go, huh? Choose your weapon then:",
-                                   starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
+                await emoji_menu(context=ctx, starting_message="Oh you wanna go, huh? Choose your weapon then:",
+                                 starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
                                    "so I stopped.", timeout_value=60, success_message="Drumroll please...")
 
             if player_pick is not None:
@@ -421,10 +448,10 @@ async def forbid(ctx, keyword, *args):
                      "\n> {}".format(keyword, message)
             emoji_list = ["✅", "⛔"]
             prompt_message, choice = \
-                await emoji_prompt(context=ctx, starting_message=prompt,
-                                   starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
+                await emoji_menu(context=ctx, starting_message=prompt,
+                                 starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
                                                                               "so I stopped.", timeout_value=60,
-                                   success_message="Drumroll please...")
+                                 success_message="Drumroll please...")
 
             if choice == 0:
                 response = "I would have added this if my owner would finish the function."
@@ -500,6 +527,7 @@ async def hug(ctx):
 
 
 @bot.command(name='spank', help='Adds a spank to the user, can be used for many purposes!')
+@commands.check(check_if_nsfw)
 async def spank(ctx):
     async with ctx.channel.typing():
         if hasattr(ctx.message, 'raw_mentions'):
@@ -576,10 +604,10 @@ async def admin(message):
             prompt = "Do you want to configure options for {}?".format(guild.name)
             emoji_list = ["👍", "👎"]
             prompt_message, choice = \
-                await emoji_prompt(context=user, starting_message=prompt,
-                                   starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
+                await emoji_menu(context=user, starting_message=prompt,
+                                 starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
                                                                               "so I stopped.", timeout_value=60,
-                                   success_message="Drumroll please...", direct_message=True)
+                                 success_message="Drumroll please...", direct_message=True)
 
             if choice == 0:
                 response = "This would start options if my lazy owner would finish it!!"
