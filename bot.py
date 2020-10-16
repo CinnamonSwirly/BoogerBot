@@ -228,14 +228,17 @@ async def on_ready():
 async def on_command_error(ctx, error):
     error_parent_name = error.__class__.__name__
 
-    if isinstance(error, commands.errors.CommandInvokeError):
-        response = on_command_error_message_CommandInvokeError
-    elif isinstance(error, commands.errors.CommandNotFound):
-        response = False
-    elif isinstance(error, commands.errors.CheckFailure):
-        response = False
-    elif isinstance(error, commands.errors.MissingRequiredArgument):
-        response = 'I think you forgot to add something there. Check help for info.'
+    dictionary_error = {
+        "CommandInvokeError": on_command_error_message_CommandInvokeError,
+        "CommandNotFound": None,
+        "CheckFailure": None,
+        "MissingRequiredArgument": "I think you forgot to add something there. Check help for info.",
+        "BotMissingPermissions": "I don't have enough permissions to do do this! I need to manage emojis and manage"
+                                 "messages. :("
+    }
+
+    if error_parent_name in dictionary_error.keys():
+        response = dictionary_error[error_parent_name]
     else:
         response = False
 
@@ -628,14 +631,17 @@ async def spank(ctx):
                 await ctx.send("You didn't mention anyone! How will I ever know where to direct this frustration?!")
 
 
-@bot.command(name='admin', help='Allows setup of various commands and permissions in the bot. Done through DMs.')
+@bot.command(name='admin', help='Allows setup of various commands and permissions in the bot.')
 @commands.has_permissions(administrator=True)
 @commands.guild_only()
 async def admin(message):
     if message.author != bot.user:
         guild = message.author.guild
         user = message.author
-        await admin_menu(user, guild)
+        try:
+            await admin_menu(user, guild)
+        except bot.commands.CommandInvokeError:
+            await message.send("I need to DM you to do this. Can you please allow DMs for a moment?")
 
 
 @bot.event
