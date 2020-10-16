@@ -174,11 +174,17 @@ async def emoji_menu(context, starting_message: str, starting_emoji: list, succe
 async def admin_menu(author, guild):
     class Stop:
         value = 0
+
     while Stop.value != 1:
         prompt = 'Options for {}:\n\n🔞: Work with your server\'s NSFW tag\n👋: Close this menu'.format(guild)
-        message, choice = await emoji_menu(context=author, starting_message=prompt, starting_emoji=['🔞', '👋'],
+
+        try:
+            message, choice = await emoji_menu(context=author, starting_message=prompt, starting_emoji=['🔞', '👋'],
                                      success_message='Okay!', failure_message='Closing menu due to inactivity.',
                                      timeout_value=120, direct_message=True)
+        except discord.ext.commands.CommandInvokeError:
+            await message.send("I need to DM you to do this. Can you please allow DMs for a moment?")
+
         dictionary_choice = {
             0: nsfw_menu,
             1: close_menu
@@ -638,10 +644,7 @@ async def admin(message):
     if message.author != bot.user:
         guild = message.author.guild
         user = message.author
-        try:
-            await admin_menu(user, guild)
-        except discord.ext.commands.CommandInvokeError:
-            await message.send("I need to DM you to do this. Can you please allow DMs for a moment?")
+        await admin_menu(user, guild)
 
 
 @bot.event
