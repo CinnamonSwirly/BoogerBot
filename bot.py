@@ -36,6 +36,15 @@ class DatabaseConnection:
         self.cursor = self.connection.cursor()
 
 
+class CustomError(Exception):
+    pass
+
+
+class CannotDirectMessage(CustomError):
+    name = "CannotDirectMessage"
+    pass
+
+
 Boogerball = DatabaseConnection()
 
 # TODO: Write a function to collect all of the forbidden words and stick them in the above list
@@ -144,54 +153,52 @@ async def emoji_menu(context, starting_message: str, starting_emoji: list, succe
         compare_user = context.author
 
     # Present the message and add the provided emoji as options
-    prompt_message = await context.send(starting_message)
-    for emoji in starting_emoji:
-        await prompt_message.add_reaction(str(emoji))
-
-    # Wait for the player to react back to the message
-    def check_prompt(reaction, user):
-        return user == compare_user and str(reaction.emoji) in starting_emoji \
-            and reaction.message.id == prompt_message.id
-
     try:
-        reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check_prompt)
+        prompt_message = await context.send(starting_message)
+        for emoji in starting_emoji:
+            await prompt_message.add_reaction(str(emoji))
 
-        reaction_index = starting_emoji.index(str(reaction.emoji))
+        # Wait for the player to react back to the message
+        def check_prompt(reaction, user):
+            return user == compare_user and str(reaction.emoji) in starting_emoji \
+                and reaction.message.id == prompt_message.id
 
-        if direct_message is False:
-            # You can't do this in a DM, so only do this if not in a DM.
+        try:
+            reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check_prompt)
+
+            reaction_index = starting_emoji.index(str(reaction.emoji))
+
+            if direct_message is False:
+                # You can't do this in a DM, so only do this if not in a DM.
+                await prompt_message.clear_reactions()
+
+            await prompt_message.edit(content=success_message)
+
+            return prompt_message, reaction_index
+
+        except asyncio.TimeoutError:
             await prompt_message.clear_reactions()
-
-        await prompt_message.edit(content=success_message)
-
-        return prompt_message, reaction_index
-
-    except asyncio.TimeoutError:
-        await prompt_message.clear_reactions()
-        await prompt_message.edit(content=failure_message, suppress=True, delete_after=timeout_value)
+            await prompt_message.edit(content=failure_message, suppress=True, delete_after=timeout_value)
+    except bot.commands.CommandInvokeError:
+        raise CannotDirectMessage
 
 
-async def admin_menu(context, author, guild):
+async def admin_menu(author, guild):
     class Stop:
         value = 0
 
     while Stop.value != 1:
         prompt = 'Options for {}:\n\n🔞: Work with your server\'s NSFW tag\n👋: Close this menu'.format(guild)
 
-        try:
-            message, choice = await emoji_menu(context=author, starting_message=prompt, starting_emoji=['🔞', '👋'],
-                                     success_message='Okay!', failure_message='Closing menu due to inactivity.',
-                                     timeout_value=120, direct_message=True)
+        message, choice = await emoji_menu(context=author, starting_message=prompt, starting_emoji=['🔞', '👋'],
+                                 success_message='Okay!', failure_message='Closing menu due to inactivity.',
+                                 timeout_value=120, direct_message=True)
 
-            dictionary_choice = {
-                0: nsfw_menu,
-                1: close_menu
-            }
-            Stop.value = await dictionary_choice[choice](author, guild)
-
-        except discord.ext.commands.CommandInvokeError:
-            await context.send("I need to DM you to do this. Can you please allow DMs for a moment?")
-            Stop.value = 1
+        dictionary_choice = {
+            0: nsfw_menu,
+            1: close_menu
+        }
+        Stop.value = await dictionary_choice[choice](author, guild)
 
 
 async def nsfw_menu(author, guild):
@@ -242,7 +249,8 @@ async def on_command_error(ctx, error):
         "CheckFailure": None,
         "MissingRequiredArgument": "I think you forgot to add something there. Check help for info.",
         "BotMissingPermissions": "I don't have enough permissions to do do this! I need to manage emojis and manage"
-                                 "messages. :("
+                                 "messages. :(",
+        "CannotDirectMessage": "I need to DM you to do this. Can you please allow DMs for a moment?"
     }
 
     if error_parent_name in dictionary_error.keys():
@@ -646,7 +654,7 @@ async def admin(message):
     if message.author != bot.user:
         guild = message.author.guild
         user = message.author
-        await admin_menu(message, user, guild)
+        await admin_menu(user, guild)
 
 
 @bot.event
