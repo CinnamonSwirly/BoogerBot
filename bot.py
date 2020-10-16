@@ -21,7 +21,6 @@ owner = int(os.getenv('OWNER_ID'))
 command_prefix = os.getenv('COMMAND_PREFIX')
 on_command_error_message_GenericMessage = os.getenv('ON_COMMAND_ERROR_MESSAGE_GENERICMESSAGE')
 on_command_error_message_CommandInvokeError = os.getenv('ON_COMMAND_ERROR_MESSAGE_COMMANDINVOKEERROR')
-on_command_error_message_CheckFailure = os.getenv('ON_COMMAND_ERROR_MESSAGE_CHECKFAILURE')
 
 bot = commands.Bot(command_prefix=command_prefix, owner_id=owner)
 
@@ -29,11 +28,21 @@ forbidden_words = []
 
 start_time = time.time()
 
+
 class DatabaseConnection:
     def __init__(self):
         self.connection = psycopg2.connect(database='boogerball')
         self.connection.autocommit = True
         self.cursor = self.connection.cursor()
+
+
+class CustomError(Exception):
+    pass
+
+
+class CannotDirectMessage(CustomError):
+    def __init__(self):
+        super(CannotDirectMessage, self).__init__("User has DMs blocked")
 
 
 Boogerball = DatabaseConnection()
@@ -86,15 +95,34 @@ def wikipedia_get(argument):
     return found
 
 
-def check_if_owner(ctx):
-    """
-    Bot commands can reference this command's output to determine if the invoking user is the owner of the bot
+def check_if_command_allowed(command, server, user):
+    #TODO: Check if the user has permission to execute the command
+    pass
 
-    :param ctx: instance of discord.ext.commands.Context
-    :return: bool for the check of ctx.message.author.id against the defined owner ID in the declaration of bot
-    """
 
-    return bot.is_owner(ctx.message.author)
+def check_if_nsfw(ctx):
+    """
+    Checks if the server has the NSFW tag enabled. Used to check if certain commands, like spanking, can be run.
+    :param ctx: The ID of the guild (or server) the command is being called from
+    :return: a boolean 1 or 0. 1 means yes, the server is nsfw, 0 means no, it is not.
+    """
+    if isinstance(ctx, discord.ext.commands.Context):
+        ID = ctx.message.guild.id
+    elif isinstance(ctx, discord.Guild):
+        ID = ctx.id
+    else:
+        print(type(ctx))
+        return 0
+
+    Boogerball.cursor.execute("SELECT nsfw FROM guilds WHERE ID = %(ID)s",
+                              {'ID': str(ID)})
+    nsfw = Boogerball.cursor.fetchone()
+    if len(nsfw) == 0:
+        return 0
+    elif nsfw[0] is True:
+        return 1
+    else:
+        return 0
 
 
 def tuple_to_str(obj, joinchar):
@@ -102,8 +130,9 @@ def tuple_to_str(obj, joinchar):
     return result
 
 
-async def emoji_prompt(context, starting_message: str, starting_emoji: list, success_message: str,
-                       failure_message: str, timeout_value: int, direct_message: bool = False):
+async def emoji_menu(context, starting_message: str, starting_emoji: list, success_message: str,
+                     failure_message: str, timeout_value: int = 60, direct_message: bool = False,
+                     style: str = "custom"):
     """
     Presents a message with emoji for the user to react. Returns the message used for the selection and the index of
     the provided starting_emoji list that corresponds to the user selection.
@@ -114,6 +143,7 @@ async def emoji_prompt(context, starting_message: str, starting_emoji: list, suc
     :param failure_message: The prompted message will be edited to show this if the user does not pick anything
     :param timeout_value: The time to wait for the user to pick an emoji before showing the failure_message
     :param direct_message: A boolean to signal the function if we're in a DM.
+    :param style: Chooses a premade menu, rather than having to specify all parameters to build your own
     :return: Returns a discord.py Message object and an int
     """
     # If the context sent is a user instead of a message, we must change how the check_prompt logic works later.
@@ -123,31 +153,81 @@ async def emoji_prompt(context, starting_message: str, starting_emoji: list, suc
         compare_user = context.author
 
     # Present the message and add the provided emoji as options
-    prompt_message = await context.send(starting_message)
-    for emoji in starting_emoji:
-        await prompt_message.add_reaction(str(emoji))
-
-    # Wait for the player to react back to the message
-    def check_prompt(reaction, user):
-        return user == compare_user and str(reaction.emoji) in starting_emoji \
-            and reaction.message.id == prompt_message.id
-
     try:
-        reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check_prompt)
+        prompt_message = await context.send(starting_message)
+        for emoji in starting_emoji:
+            await prompt_message.add_reaction(str(emoji))
 
-        reaction_index = starting_emoji.index(str(reaction.emoji))
+        # Wait for the player to react back to the message
+        def check_prompt(reaction, user):
+            return user == compare_user and str(reaction.emoji) in starting_emoji \
+                and reaction.message.id == prompt_message.id
 
-        if direct_message is False:
-            # You can't do this in a DM, so only do this if not in a DM.
+        try:
+            reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check_prompt)
+
+            reaction_index = starting_emoji.index(str(reaction.emoji))
+
+            if direct_message is False:
+                # You can't do this in a DM, so only do this if not in a DM.
+                await prompt_message.clear_reactions()
+
+            await prompt_message.edit(content=success_message)
+
+            return prompt_message, reaction_index
+
+        except asyncio.TimeoutError:
             await prompt_message.clear_reactions()
+            await prompt_message.edit(content=failure_message, suppress=True, delete_after=timeout_value)
+    except discord.Forbidden:
+        raise CannotDirectMessage
 
-        await prompt_message.edit(content=success_message)
 
-        return prompt_message, reaction_index
+async def admin_menu(author, guild):
+    class Stop:
+        value = 0
 
-    except asyncio.TimeoutError:
-        await prompt_message.clear_reactions()
-        await prompt_message.edit(content=failure_message, suppress=True, delete_after=timeout_value)
+    while Stop.value != 1:
+        prompt = 'Options for {}:\n\n🔞: Work with your server\'s NSFW tag\n👋: Close this menu'.format(guild)
+
+        message, choice = await emoji_menu(context=author, starting_message=prompt, starting_emoji=['🔞', '👋'],
+                                 success_message='Okay!', failure_message='Closing menu due to inactivity.',
+                                 timeout_value=120, direct_message=True)
+
+        dictionary_choice = {
+            0: nsfw_menu,
+            1: close_menu
+        }
+        Stop.value = await dictionary_choice[choice](author, guild)
+
+
+async def nsfw_menu(author, guild):
+    nsfw = check_if_nsfw(guild)
+    dictionary_nsfw = {
+        0: "OFF",
+        1: "ON"
+    }
+    prompt = 'The NSFW tag for {} is currently: {}\n\nWhen this is ON, members can use NSFW commands.\n' \
+             'What do you want to do with it?\n\n🔄: Switch the NSFW tag\n' \
+             '🛑: Go back to the main menu'.format(guild, dictionary_nsfw[nsfw])
+    message, choice = await emoji_menu(context=author, starting_message=prompt, starting_emoji=['🔄', '🛑'],
+                                 success_message='Done!', failure_message='Closing menu due to inactivity.',
+                                 timeout_value=120, direct_message=True)
+    if choice == 0:
+        new_nsfw = abs(nsfw - 1)
+        dictionary_new_nsfw = {
+            0: False,
+            1: True
+        }
+        Boogerball.cursor.execute("UPDATE guilds SET nsfw = %(nsfw_flag)s WHERE ID = %(guild_id)s",
+                                  {'nsfw_flag': str(dictionary_new_nsfw[new_nsfw]),
+                                   'guild_id': str(guild.id)})
+
+    return 0
+
+
+async def close_menu(author, guild):
+    return 1
 
 
 @bot.event
@@ -163,33 +243,38 @@ async def on_ready():
 async def on_command_error(ctx, error):
     error_parent_name = error.__class__.__name__
 
-    if isinstance(error, commands.errors.CommandInvokeError):
-        # This error happens when the bot has been running too long.
-        if "AdminShutdown" in error:
-            await ctx.send("I need a moment to think, can you please try again in a minute or so?")
-            await bot.close()
-            bot.run(str(sys.argv[1]))
+    dictionary_error = {
+        "CommandInvokeError": str(on_command_error_message_CommandInvokeError),
+        "CommandNotFound": False,
+        "CheckFailure": False,
+        "MissingRequiredArgument": "I think you forgot to add something there. Check help for info.",
+        "BotMissingPermissions": "I don't have enough permissions to do do this! I need to manage emojis and manage"
+                                 "messages. :(",
+        "CannotDirectMessage": "I need to DM you to do this. Can you please allow DMs for a moment?"
+    }
+
+    if error_parent_name in dictionary_error.keys():
+        if "CannotDirectMessage" in str(error):
+            response = dictionary_error["CannotDirectMessage"]
         else:
-            response = on_command_error_message_CommandInvokeError
-    elif isinstance(error, commands.errors.CommandNotFound):
-        response = False
-    elif isinstance(error, commands.errors.CheckFailure):
-        response = on_command_error_message_CheckFailure
-    elif isinstance(error, commands.errors.MissingRequiredArgument):
-        response = 'I think you forgot to add something there. Check help for info.'
+            response = dictionary_error[error_parent_name]
     else:
         response = False
-        pass
 
     with open('stderr.log', 'a') as s:
         output = 'Command Error: {}, raised: {} \nDuring: {}\n'.format(error_parent_name, str(error), ctx.invoked_with)
         s.write(output)
 
-    with ctx.channel.typing():
-        if response is False:
-            pass
-        else:
+    if response is not False:
+        with ctx.channel.typing():
             await ctx.send(response)
+
+
+@bot.event
+async def on_guild_join(guild):
+    Boogerball.cursor.execute("INSERT INTO guilds (ID, nsfw) VALUES "
+                              "(%(guild)s, false)",
+                              {'guild': str(guild.id)})
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
@@ -199,7 +284,7 @@ async def ping(ctx):
 
 
 @bot.command(name='stop', hidden=True, aliases=['bye', 'ciao'])
-@commands.check(check_if_owner)
+@commands.is_owner()
 async def stop(ctx):
     response = 'Ok bye!'
     await ctx.send(response)
@@ -207,7 +292,7 @@ async def stop(ctx):
 
 
 @bot.command(name='stats', hidden=True, aliases=['stat', 'uptime'])
-@commands.check(check_if_owner)
+@commands.is_owner()
 async def stats(ctx):
     uptime = round(time.time() - start_time)
     end_time_seconds = str(uptime % 60)
@@ -220,7 +305,7 @@ async def stats(ctx):
     await bot.close()
 
 
-@bot.command(name='boop', help='boop someone!')
+@bot.command(name='boop', help='boop someone!', hidden=True)
 async def boop(ctx, booped):
     gif = tenor_get("cute nose boop", 12)
     if gif is None:
@@ -231,7 +316,7 @@ async def boop(ctx, booped):
     await ctx.send(response)
 
 
-@bot.command(name='wiki', aliases=['wikipedia', 'lookup'], help='Looks up something on wikipedia.')
+@bot.command(name='wiki', aliases=['wikipedia', 'lookup'], help='Tries to look up something on wikipedia.')
 async def wiki(ctx, *args):
     async with ctx.channel.typing():
         if len(args) == 1:
@@ -246,7 +331,7 @@ async def wiki(ctx, *args):
         await ctx.send(response)
 
 
-@bot.command(name='rps', help='Rock paper scissors! Start a game with rps, or use rps stats to check yourself!')
+@bot.command(name='rps', help='Rock paper scissors! Use "rps stats" for stats')
 async def rps(ctx, selection='play'):
     async with ctx.channel.typing():
 
@@ -295,8 +380,8 @@ async def rps(ctx, selection='play'):
 
             # Construct the game's prompt and get ready for the player's selection.
             prompt_message, player_pick = \
-                await emoji_prompt(context=ctx, starting_message="Oh you wanna go, huh? Choose your weapon then:",
-                                   starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
+                await emoji_menu(context=ctx, starting_message="Oh you wanna go, huh? Choose your weapon then:",
+                                 starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
                                    "so I stopped.", timeout_value=60, success_message="Drumroll please...")
 
             if player_pick is not None:
@@ -361,7 +446,7 @@ async def rps(ctx, selection='play'):
             await ctx.send(bots_response)
 
 
-@bot.command(name='roll', help='rolls a dice. Syntax is roll d2 up to d1000')
+@bot.command(name='roll', help='rolls a dice. Syntax is roll <number> d<sides of die>')
 async def roll(ctx, *args):
     async with ctx.channel.typing():
         if args is not None:
@@ -402,7 +487,8 @@ async def roll(ctx, *args):
 
 @bot.command(name='forbid', help='Will set up a trigger so when a word is said, a message is posted. '
                                  'Syntax: forbid cookies AH! Now Im hungry, thanks &user, its only been &time since'
-                                 ' someone reminded me about it. Yall have said it &times now')
+                                 ' someone reminded me about it. Yall have said it &times now',
+             hidden=True)
 async def forbid(ctx, keyword, *args):
     print(keyword)
     print(args)
@@ -421,10 +507,10 @@ async def forbid(ctx, keyword, *args):
                      "\n> {}".format(keyword, message)
             emoji_list = ["✅", "⛔"]
             prompt_message, choice = \
-                await emoji_prompt(context=ctx, starting_message=prompt,
-                                   starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
+                await emoji_menu(context=ctx, starting_message=prompt,
+                                 starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
                                                                               "so I stopped.", timeout_value=60,
-                                   success_message="Drumroll please...")
+                                 success_message="Drumroll please...")
 
             if choice == 0:
                 response = "I would have added this if my owner would finish the function."
@@ -499,7 +585,8 @@ async def hug(ctx):
                 await ctx.send("You didn't mention anyone! How will I ever know where to direct this frustration?!")
 
 
-@bot.command(name='spank', help='Adds a spank to the user, can be used for many purposes!')
+@bot.command(name='spank', help='Spanks people you mention. Keeps track, too!')
+@commands.check(check_if_nsfw)
 async def spank(ctx):
     async with ctx.channel.typing():
         if hasattr(ctx.message, 'raw_mentions'):
@@ -563,29 +650,14 @@ async def spank(ctx):
                 await ctx.send("You didn't mention anyone! How will I ever know where to direct this frustration?!")
 
 
-@bot.command(name='admin', help='Allows setup of various commands and permissions in the bot. Done through DMs.')
+@bot.command(name='admin', help='Allows setup of various commands and permissions in the bot.')
+@commands.has_permissions(administrator=True)
+@commands.guild_only()
 async def admin(message):
     if message.author != bot.user:
-        if message.author.dm_channel is not None and message.channel is not None and not message.guild:
-            response = 'This command cannot be called straight from DMs. Please use this command in the server you ' \
-                       'want to configure options for.'
-            await message.send(response)
-        else:
-            guild = message.author.guild
-            user = message.author
-            prompt = "Do you want to configure options for {}?".format(guild.name)
-            emoji_list = ["👍", "👎"]
-            prompt_message, choice = \
-                await emoji_prompt(context=user, starting_message=prompt,
-                                   starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
-                                                                              "so I stopped.", timeout_value=60,
-                                   success_message="Drumroll please...", direct_message=True)
-
-            if choice == 0:
-                response = "This would start options if my lazy owner would finish it!!"
-            else:
-                response = "Okay, see you later!"
-            await user.send(response)
+        guild = message.author.guild
+        user = message.author
+        await admin_menu(user, guild)
 
 
 @bot.event
