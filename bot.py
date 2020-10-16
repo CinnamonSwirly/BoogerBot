@@ -111,7 +111,7 @@ def check_if_nsfw(server):
     Boogerball.cursor.execute("SELECT nsfw FROM guilds WHERE ID = %(ID)s",
                               {'ID': str(server)})
     nsfw = Boogerball.cursor.fetchone()
-    if nsfw == 't':
+    if nsfw[0] == 't':
         return 1
     else:
         return 0
