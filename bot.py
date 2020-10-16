@@ -183,18 +183,18 @@ async def emoji_menu(context, starting_message: str, starting_emoji: list, succe
 
 
 async def admin_menu(author, guild):
-    while True:
+    class Stop:
+        value = 0
+    while Stop.value != 1:
         prompt = 'Options for {}:\n\n🔞: Work with your server\'s NSFW tag\n👋: Close this menu'.format(guild)
         message, choice = await emoji_menu(context=author, starting_message=prompt, starting_emoji=['🔞', '👋'],
                                      success_message='Working...', failure_message='Closing menu due to inactivity.',
                                      timeout_value=120, direct_message=True)
-        if choice == 1:
-            return
         dictionary_choice = {
             0: nsfw_menu,
-            1: lambda: True is True
+            1: close_menu
         }
-        dictionary_choice[choice](author, guild)
+        Stop.value = await dictionary_choice[choice](author, guild)
 
 
 async def nsfw_menu(author, guild):
@@ -218,6 +218,12 @@ async def nsfw_menu(author, guild):
         Boogerball.cursor.execute("UPDATE guild SET nsfw = %(nsfw_flag)s WHERE ID = %(guild_id)s",
                                   {'nsfw_flag': str(dictionary_new_nsfw[new_nsfw]),
                                    'guild_id': str(guild.id)})
+
+    return 0
+
+
+async def close_menu(author, guild):
+    return 1
 
 
 @bot.event
@@ -653,7 +659,7 @@ async def admin(message):
                 0: await admin_menu(user, guild),
                 1: await user.send("Okay, see you later!")
             }
-            action = dictionary_choice[choice]()
+            action = await dictionary_choice[choice]()
 
 
 @bot.event
