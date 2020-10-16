@@ -42,6 +42,8 @@ class CustomError(Exception):
 
 class CannotDirectMessage(CustomError):
     __name__ = "CannotDirectMessage"
+    super().__name__ = "CannotDirectMessage"
+    super().__init__("User has DMs blocked")
     pass
 
 
