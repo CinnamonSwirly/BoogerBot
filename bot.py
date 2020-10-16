@@ -209,7 +209,7 @@ async def nsfw_menu(author, guild):
     message, choice = emoji_menu(context=author, starting_message=prompt, starting_emoji=['🔄', '🔙'],
                                  success_message='Done!', failure_message='Closing menu due to inactivity.',
                                  timeout_value=120, direct_message=True)
-    if choice is 0:
+    if choice == 0:
         new_nsfw = abs(nsfw - 1)
         dictionary_new_nsfw = {
             0: False,
