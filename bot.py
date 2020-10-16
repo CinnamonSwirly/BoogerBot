@@ -86,17 +86,6 @@ def wikipedia_get(argument):
     return found
 
 
-def check_if_owner(ctx):
-    """
-    Bot commands can reference this command's output to determine if the invoking user is the owner of the bot
-
-    :param ctx: instance of discord.ext.commands.Context
-    :return: bool for the check of ctx.message.author.id against the defined owner ID in the declaration of bot
-    """
-
-    return bot.is_owner(ctx.message.author)
-
-
 def check_if_command_allowed(command, server, user):
     #TODO: Check if the user has permission to execute the command
     pass
@@ -188,7 +177,7 @@ async def admin_menu(author, guild):
     while Stop.value != 1:
         prompt = 'Options for {}:\n\n🔞: Work with your server\'s NSFW tag\n👋: Close this menu'.format(guild)
         message, choice = await emoji_menu(context=author, starting_message=prompt, starting_emoji=['🔞', '👋'],
-                                     success_message='Working...', failure_message='Closing menu due to inactivity.',
+                                     success_message='Okay!', failure_message='Closing menu due to inactivity.',
                                      timeout_value=120, direct_message=True)
         dictionary_choice = {
             0: nsfw_menu,
@@ -205,8 +194,8 @@ async def nsfw_menu(author, guild):
     }
     prompt = 'The NSFW tag for {} is currently: {}\n\nWhen this is ON, members can use NSFW commands.\n' \
              'What do you want to do with it?\n\n🔄: Switch the NSFW tag\n' \
-             '🔙: Go back to the main menu'.format(guild, dictionary_nsfw[nsfw])
-    message, choice = await emoji_menu(context=author, starting_message=prompt, starting_emoji=['🔄', '🔙'],
+             '🛑: Go back to the main menu'.format(guild, dictionary_nsfw[nsfw])
+    message, choice = await emoji_menu(context=author, starting_message=prompt, starting_emoji=['🔄', '🛑'],
                                  success_message='Done!', failure_message='Closing menu due to inactivity.',
                                  timeout_value=120, direct_message=True)
     if choice == 0:
@@ -273,7 +262,7 @@ async def ping(ctx):
 
 
 @bot.command(name='stop', hidden=True, aliases=['bye', 'ciao'])
-@commands.check(check_if_owner)
+@commands.is_owner()
 async def stop(ctx):
     response = 'Ok bye!'
     await ctx.send(response)
@@ -281,7 +270,7 @@ async def stop(ctx):
 
 
 @bot.command(name='stats', hidden=True, aliases=['stat', 'uptime'])
-@commands.check(check_if_owner)
+@commands.is_owner()
 async def stats(ctx):
     uptime = round(time.time() - start_time)
     end_time_seconds = str(uptime % 60)
@@ -639,16 +628,13 @@ async def spank(ctx):
 
 
 @bot.command(name='admin', help='Allows setup of various commands and permissions in the bot. Done through DMs.')
+@commands.has_permissions(administrator=True)
+@commands.guild_only()
 async def admin(message):
     if message.author != bot.user:
-        if message.author.dm_channel is not None and message.channel is not None and not message.guild:
-            response = 'This command cannot be called straight from DMs. Please use this command in the server you ' \
-                       'want to configure options for.'
-            await message.send(response)
-        else:
-            guild = message.author.guild
-            user = message.author
-            await admin_menu(user, guild)
+        guild = message.author.guild
+        user = message.author
+        await admin_menu(user, guild)
 
 
 @bot.event
