@@ -215,7 +215,7 @@ async def on_command_error(ctx, error):
 @bot.event
 async def on_guild_join(guild):
     Boogerball.cursor.execute("INSERT INTO guilds (ID, nsfw) VALUES "
-                              "(%(guild)s, 0)",
+                              "(%(guild)s, false)",
                               {'guild': str(guild.id)})
 
 
