@@ -179,7 +179,7 @@ async def emoji_menu(context, starting_message: str, starting_emoji: list, succe
         except asyncio.TimeoutError:
             await prompt_message.clear_reactions()
             await prompt_message.edit(content=failure_message, suppress=True, delete_after=timeout_value)
-    except discord.ext.commands.CommandInvokeError:
+    except discord.Forbidden:
         raise CannotDirectMessage
 
 
