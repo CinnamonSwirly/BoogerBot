@@ -108,9 +108,11 @@ def check_if_nsfw(ctx):
     :param ctx: The ID of the guild (or server) the command is being called from
     :return: a boolean 1 or 0. 1 means yes, the server is nsfw, 0 means no, it is not.
     """
+    print(str(ctx.message.guild.id))
     Boogerball.cursor.execute("SELECT nsfw FROM guilds WHERE ID = %(ID)s",
                               {'ID': str(ctx.message.guild.id)})
     nsfw = Boogerball.cursor.fetchone()
+    print(nsfw)
     if len(nsfw) == 0:
         return 0
     elif 't' in nsfw:
