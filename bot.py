@@ -105,15 +105,15 @@ def check_if_command_allowed(command, server, user):
 def check_if_nsfw(ctx):
     """
     Checks if the server has the NSFW tag enabled. Used to check if certain commands, like spanking, can be run.
-    :param server: The ID of the guild (or server) the command is being called from
+    :param ctx: The ID of the guild (or server) the command is being called from
     :return: a boolean 1 or 0. 1 means yes, the server is nsfw, 0 means no, it is not.
     """
     Boogerball.cursor.execute("SELECT nsfw FROM guilds WHERE ID = %(ID)s",
-                              {'ID': str(ctx.guild.id)})
+                              {'ID': str(ctx.message.guild.id)})
     nsfw = Boogerball.cursor.fetchone()
     if len(nsfw) == 0:
         return 0
-    elif nsfw[0] == 't':
+    elif 't' in nsfw:
         return 1
     else:
         return 0
