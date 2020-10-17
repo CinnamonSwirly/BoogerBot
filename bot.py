@@ -96,7 +96,7 @@ def wikipedia_get(argument):
 
 
 def check_if_command_allowed(command, server, user):
-    #TODO: Check if the user has permission to execute the command
+    # TODO: Check if the user has permission to execute the command
     pass
 
 
@@ -665,7 +665,7 @@ async def on_message(message):
     if message.author != bot.user:
         channel = message.channel
         # TODO: Run through the list of forbidden words to see if a message needs to be said
-        if re.search(r'\b[t,T]rump\b', message.content, flags=re.IGNORECASE) is not None:
+        if re.search(r'\bdonald trump\b', message.content, flags=re.IGNORECASE) is not None:
             response = "Oh god! Don't say his name!!"
             await channel.send(response)
 
