@@ -325,10 +325,11 @@ async def test_history(ctx):
     guild = ctx.guild
     member = await guild.fetch_member(ctx.author.id)
     history = await member.history(limit=15).get(author__id=member.id)
-    messages = []
-    for line in history:
-        messages.append(line.content)
-    await ctx.send(messages)
+    if history is None:
+        response = "Nothing to return"
+    else:
+        response = history
+    await ctx.send(response)
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
