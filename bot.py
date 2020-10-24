@@ -8,6 +8,7 @@ import sys
 import psycopg2
 import asyncio
 import time
+from datetime import datetime, timedelta
 from psycopg2 import sql
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -233,7 +234,8 @@ async def close_menu(author, guild):
 async def ready_test():
     while True:
         print("Test")
-        time.sleep(5)
+        then = datetime.now() + timedelta(minutes=15)
+        await discord.utils.sleep_until(then)
 
 
 @bot.event
@@ -243,6 +245,7 @@ async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
     tenor_token = str(sys.argv[2])
     await bot.change_presence(activity=discord.Activity(name='$help', type=discord.ActivityType.listening))
+    await ready_test()
 
 
 @bot.event
