@@ -241,7 +241,7 @@ async def activity_check():
         for guild in bot.guilds:
             guilds.append(guild.id)
         Boogerball.cursor.execute("SELECT * FROM members WHERE activity_flag = 'false' AND member_guild IN %(guilds)s",
-                                  {'guilds': tuple(guilds)})
+                                  {'guilds': tuple(guilds), })
         members = Boogerball.cursor.fetchall()
         for member in members:
             print(member)
