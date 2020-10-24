@@ -290,11 +290,11 @@ async def on_guild_join(guild):
 
 @bot.event
 async def on_member_join(member):
+    member_id = member.id
     guild = member.guild
-    joined_time = member.joined_at
-    print(member.id)
-    print(guild)
-    print(joined_time)
+    Boogerball.cursor.execute("INSERT INTO members (member_ID, member_guild, warning_flag, activity_flag) VALUES"
+                              " (%(ID)s, %(guild)s, 'false', 'false')",
+                              {'ID': str(member_id), 'guild': str(guild)})
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
