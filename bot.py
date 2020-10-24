@@ -325,7 +325,7 @@ async def test_history(ctx):
     guild = ctx.guild
     member = await guild.fetch_member(ctx.author.id)
     history = member.history(limit=5)
-    response = str(len(history))
+    response = history
     await ctx.send(response)
 
 
