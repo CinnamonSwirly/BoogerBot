@@ -324,7 +324,7 @@ async def on_member_join(member):
 async def test_history(ctx):
     guild = ctx.guild
     member = await guild.fetch_member(ctx.author.id)
-    history = member.history(limit=15)
+    history = await member.history(limit=15)
     messages = []
     for line in history:
         messages.append(line.content)
