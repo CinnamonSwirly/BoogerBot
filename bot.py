@@ -322,7 +322,7 @@ async def on_member_join(member):
 
 @bot.command(name='test_history')
 async def test_history(ctx):
-    response = str(len(ctx.guild.fetch_member(ctx.author.id).history(limit=5)))
+    response = str(len(await ctx.guild.fetch_member(ctx.author.id).history(limit=5)))
     await ctx.send(response)
 
 
