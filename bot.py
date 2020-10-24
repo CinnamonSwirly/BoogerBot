@@ -233,9 +233,9 @@ async def close_menu(author, guild):
 
 async def ready_test():
     while True:
-        print("Test")
-        then = datetime.now() + timedelta(minutes=15)
+        then = datetime.now() + timedelta(minutes=1)
         await discord.utils.sleep_until(then)
+        print("Test")
 
 
 @bot.event
@@ -284,6 +284,15 @@ async def on_guild_join(guild):
     Boogerball.cursor.execute("INSERT INTO guilds (ID, nsfw) VALUES "
                               "(%(guild)s, false)",
                               {'guild': str(guild.id)})
+
+
+@bot.event
+async def on_member_join(member):
+    guild = member.guild
+    joined_time = member.joined_at
+    print(member.id)
+    print(guild)
+    print(joined_time)
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
