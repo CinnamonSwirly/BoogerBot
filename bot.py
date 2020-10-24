@@ -23,7 +23,9 @@ command_prefix = os.getenv('COMMAND_PREFIX')
 on_command_error_message_GenericMessage = os.getenv('ON_COMMAND_ERROR_MESSAGE_GENERICMESSAGE')
 on_command_error_message_CommandInvokeError = os.getenv('ON_COMMAND_ERROR_MESSAGE_COMMANDINVOKEERROR')
 
-bot = commands.Bot(command_prefix=command_prefix, owner_id=owner)
+intents = discord.Intents.default()
+intents.members = True
+bot = commands.Bot(command_prefix=command_prefix, owner_id=owner, intents=intents)
 
 forbidden_words = []
 
