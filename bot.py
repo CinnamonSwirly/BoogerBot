@@ -237,8 +237,14 @@ async def activity_check():
     while True:
         then = datetime.now() + timedelta(minutes=1)
         await discord.utils.sleep_until(then)
+        guilds = ()
         for guild in bot.guilds:
-            print(guild.id)
+            guilds.__add__(guild.id)
+        Boogerball.cursor.execute("SELECT * FROM members WHERE activity_flag = 'false' AND member_guild IN %(guilds)s",
+                                  {'guilds': guilds})
+        members = Boogerball.cursor.fetchall()
+        for member in members:
+            print(member)
 
 
 @bot.event
