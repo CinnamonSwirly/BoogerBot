@@ -230,6 +230,12 @@ async def close_menu(author, guild):
     return 1
 
 
+async def ready_test():
+    while True:
+        print("Test")
+        time.sleep(5)
+
+
 @bot.event
 async def on_ready():
     global tenor_token
@@ -237,6 +243,7 @@ async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
     tenor_token = str(sys.argv[2])
     await bot.change_presence(activity=discord.Activity(name='$help', type=discord.ActivityType.listening))
+    await ready_test()
 
 
 @bot.event
