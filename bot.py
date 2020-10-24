@@ -324,7 +324,8 @@ async def on_member_join(member):
 async def test_history(ctx):
     guild = ctx.guild
     member = await guild.fetch_member(ctx.author.id)
-    history = await member.history(limit=15).get()
+    then = datetime.now() - timedelta(minutes=-15)
+    history = await guild.history(after=then).get(author=member)
     if history is None:
         response = "Nothing to return"
     else:
