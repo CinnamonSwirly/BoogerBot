@@ -324,9 +324,8 @@ async def on_member_join(member):
 async def test_history(ctx):
     guild = ctx.guild
     member = await guild.fetch_member(ctx.author.id)
-    history = member.history(limit=5)
-    response = history
-    await ctx.send(response)
+    history = member.history(limit=5).flatten()
+    await ctx.send(history)
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
