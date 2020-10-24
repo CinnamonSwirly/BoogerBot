@@ -243,7 +243,6 @@ async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
     tenor_token = str(sys.argv[2])
     await bot.change_presence(activity=discord.Activity(name='$help', type=discord.ActivityType.listening))
-    await ready_test()
 
 
 @bot.event
