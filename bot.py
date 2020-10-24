@@ -233,11 +233,12 @@ async def close_menu(author, guild):
     return 1
 
 
-async def ready_test():
+async def activity_check():
     while True:
         then = datetime.now() + timedelta(minutes=1)
         await discord.utils.sleep_until(then)
-        print("Test")
+        for guild in bot.guilds:
+            print(guild.id)
 
 
 @bot.event
@@ -247,7 +248,7 @@ async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
     tenor_token = str(sys.argv[2])
     await bot.change_presence(activity=discord.Activity(name='$help', type=discord.ActivityType.listening))
-    await ready_test()
+    await activity_check()
 
 
 @bot.event
@@ -291,7 +292,7 @@ async def on_guild_join(guild):
 @bot.event
 async def on_member_join(member):
     member_id = member.id
-    guild = member.guild
+    guild = member.guild.id
     Boogerball.cursor.execute("INSERT INTO members (member_ID, member_guild, warning_flag, activity_flag) VALUES"
                               " (%(ID)s, %(guild)s, 'false', 'false')",
                               {'ID': str(member_id), 'guild': str(guild)})
