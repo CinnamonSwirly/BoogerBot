@@ -235,16 +235,32 @@ async def close_menu(author, guild):
 
 async def activity_check():
     while True:
+        # Wait some time before running this again
         then = datetime.now() + timedelta(minutes=1)
         await discord.utils.sleep_until(then)
+
+        # Start fresh
         guilds = []
         for guild in bot.guilds:
             guilds.append(guild.id)
+
+        # Get everyone who has joined but who hasn't been flagged active yet
         Boogerball.cursor.execute("SELECT * FROM members WHERE activity_flag = 'false' AND member_guild IN %(guilds)s",
                                   {'guilds': tuple(guilds), })
         members = Boogerball.cursor.fetchall()
-        for member in members:
-            print(member)
+
+        # Isolate the member IDs
+        member_ids = []
+        if members is not None:
+            for row in members:
+                member_ids.append(row[0])
+
+        for guild in bot.guilds:
+            for member in member_ids:
+                find_member = guild.get_member(member)
+                if find_member is not None:
+                    for channel in guild.channels.permissions_for(find_member):
+                        pass
 
 
 @bot.event
@@ -254,7 +270,7 @@ async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
     tenor_token = str(sys.argv[2])
     await bot.change_presence(activity=discord.Activity(name='$help', type=discord.ActivityType.listening))
-    await activity_check()
+    # await activity_check()
 
 
 @bot.event
@@ -302,6 +318,12 @@ async def on_member_join(member):
     Boogerball.cursor.execute("INSERT INTO members (member_ID, member_guild, warning_flag, activity_flag) VALUES"
                               " (%(ID)s, %(guild)s, 'false', 'false')",
                               {'ID': str(member_id), 'guild': str(guild)})
+
+
+@bot.command(name='test_history')
+async def test_history(ctx):
+    response = str(len(ctx.guild.fetch_member(ctx.author.id).history(limit=5)))
+    await ctx.send(response)
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
