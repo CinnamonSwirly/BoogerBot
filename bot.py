@@ -264,7 +264,7 @@ async def activity_check():
                 find_member = await guild.fetch_member(member)
                 if find_member is not None:
                     print("Member Object: {find_member}")
-                    for channel in await guild.fetch_channels:
+                    for channel in await guild.fetch_channels():
                         if type(channel) is discord.TextChannel:
                             print("Channel: {channel}")
                             activity = await channel.history().get(author=find_member)
