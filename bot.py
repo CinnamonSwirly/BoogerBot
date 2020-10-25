@@ -329,7 +329,8 @@ async def test_history(ctx):
 
     history = []
     for channel in channels:
-        history.append(await channel.history(after=then).get(author=member))
+        if channel is not discord.CategoryChannel:
+            history.append(await channel.history(after=then).get(author=member))
 
     if history is None:
         response = "Nothing to return"
