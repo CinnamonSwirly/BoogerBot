@@ -251,7 +251,7 @@ async def activity_check():
 
         # Isolate the member IDs
         member_ids = []
-        if members is not None:
+        if len(members) != 0:
             for row in members:
                 member_ids.append(row[0])
         else:
@@ -276,7 +276,7 @@ async def activity_check():
                             else:
                                 print("Activity check failed for {}!".format(member))
                 else:
-                    print("No members found in Activity Check")
+                    print("Member not found in Activity Check")
 
 
 @bot.event
