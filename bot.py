@@ -258,20 +258,20 @@ async def activity_check():
             print("No members returned from the members table")
 
         for guild in bot.guilds:
-            print("Guild: {guild}")
+            print("Guild: {}".format(guild))
             for member in member_ids:
-                print("Member: {member}")
+                print("Member: {}".format(member))
                 find_member = await guild.fetch_member(member)
                 if find_member is not None:
-                    print("Member Object: {find_member}")
+                    print("Member Object: {}".format(find_member))
                     for channel in await guild.fetch_channels():
                         if type(channel) is discord.TextChannel:
-                            print("Channel: {channel}")
+                            print("Channel: {}".format(channel))
                             activity = await channel.history().get(author=find_member)
                             if activity is not None:
-                                print("Activity check success for {str(member)}!")
+                                print("Activity check success for {}!".format(member))
                             else:
-                                print("Activity check failed for {str(member)}!")
+                                print("Activity check failed for {}!".format(member))
                 else:
                     print("No members found in Activity Check")
 
