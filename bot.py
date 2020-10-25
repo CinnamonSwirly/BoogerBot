@@ -258,11 +258,15 @@ async def activity_check():
             print("No members returned from the members table")
 
         for guild in bot.guilds:
+            print("Guild: {guild}")
             for member in member_ids:
+                print("Member: {member}")
                 find_member = guild.fetch_member(member)
                 if find_member is not None:
+                    print("Member Object: {find_member}")
                     for channel in guild.fetch_channels:
                         if type(channel) is discord.TextChannel:
+                            print("Channel: {channel}")
                             activity = await channel.history().get(author=find_member)
                             if activity is not None:
                                 print("Activity check success for {str(member)}!")
@@ -279,7 +283,7 @@ async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
     tenor_token = str(sys.argv[2])
     await bot.change_presence(activity=discord.Activity(name='$help', type=discord.ActivityType.listening))
-    # await activity_check()
+    await activity_check()
 
 
 @bot.event
