@@ -329,7 +329,7 @@ async def test_history(ctx):
 
     history = []
     for channel in channels:
-        if type(channel) is not discord.CategoryChannel:
+        if type(channel) is discord.TextChannel:
             history.append(await channel.history(after=then).get(author=member))
 
     if history is None:
