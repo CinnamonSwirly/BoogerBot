@@ -257,10 +257,13 @@ async def activity_check():
 
         for guild in bot.guilds:
             for member in member_ids:
-                find_member = guild.get_member(member)
+                find_member = guild.fetch_member(member)
                 if find_member is not None:
-                    for channel in guild.channels.permissions_for(find_member):
-                        pass
+                    for channel in guild.fetch_channels:
+                        if type(channel) is discord.TextChannel:
+                            activity = await channel.history().get(author=find_member)
+                            if activity is not None:
+                                print("Activity check success for {str(member)}!")
 
 
 @bot.event
@@ -325,7 +328,6 @@ async def test_history(ctx):
     guild = ctx.guild
     member = await guild.fetch_member(ctx.author.id)
     channels = await guild.fetch_channels()
-    then = datetime.now() - timedelta(minutes=-15)
 
     history = []
     for channel in channels:
