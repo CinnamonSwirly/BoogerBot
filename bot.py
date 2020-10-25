@@ -324,7 +324,7 @@ async def on_member_join(member):
 async def test_history(ctx):
     guild = ctx.guild
     member = await guild.fetch_member(ctx.author.id)
-    channels = await guild.fetch_channels.permissions_for(member)
+    channels = await guild.fetch_channels()
     then = datetime.now() - timedelta(minutes=-15)
 
     history = []
