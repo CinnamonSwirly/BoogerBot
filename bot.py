@@ -270,6 +270,9 @@ async def activity_check():
                             activity = await channel.history().get(author=find_member)
                             if activity is not None:
                                 print("Activity check success for {}!".format(member))
+                                Boogerball.cursor.execute("UPDATE members SET activity_flag = 'true'"
+                                                          "WHERE member_id = %{ID}s",
+                                                          {'ID': member})
                             else:
                                 print("Activity check failed for {}!".format(member))
                 else:
