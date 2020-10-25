@@ -254,6 +254,8 @@ async def activity_check():
         if members is not None:
             for row in members:
                 member_ids.append(row[0])
+        else:
+            print("No members returned from the members table")
 
         for guild in bot.guilds:
             for member in member_ids:
@@ -266,6 +268,8 @@ async def activity_check():
                                 print("Activity check success for {str(member)}!")
                             else:
                                 print("Activity check failed for {str(member)}!")
+                else:
+                    print("No members found in Activity Check")
 
 
 @bot.event
