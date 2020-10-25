@@ -264,6 +264,8 @@ async def activity_check():
                             activity = await channel.history().get(author=find_member)
                             if activity is not None:
                                 print("Activity check success for {str(member)}!")
+                            else:
+                                print("Activity check failed for {str(member)}!")
 
 
 @bot.event
