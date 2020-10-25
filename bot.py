@@ -330,7 +330,7 @@ async def test_history(ctx):
     history = []
     for channel in channels:
         if type(channel) is discord.TextChannel:
-            history.append(await channel.history(after=then).get())
+            history.append(await channel.history().get())
 
     if history is None:
         response = "Nothing to return"
