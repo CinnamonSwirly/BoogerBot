@@ -339,7 +339,7 @@ async def on_member_join(member):
 
 @bot.event
 async def on_reaction_add(reaction, user):
-    await reaction.message.channel.send(reaction.emoji)
+    await reaction.message.channel.send(str(reaction.emoji))
 
 
 @bot.command(name='test_history', hidden=True)
