@@ -352,7 +352,9 @@ async def on_member_join(member):
 @bot.event
 async def on_reaction_add(reaction, user):
     global baddog_emoji
-    if reaction.emoji == baddog_emoji:
+    global reacted_messages
+    if reaction.emoji == baddog_emoji and reaction.count >= 1 and reaction.message.id not in reacted_messages:
+        reacted_messages.append(reaction.message.id)
         await reaction.message.channel.send("Bad dog!")
 
 
