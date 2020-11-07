@@ -29,6 +29,11 @@ bot = commands.Bot(command_prefix=command_prefix, owner_id=owner, intents=intent
 
 forbidden_words = []
 baddog_emoji = 0
+baddog_images = [
+    'https://tenor.com/view/lilo-and-stitch-stitch-bad-dog-spray-spraying-gif-5134293',
+    'https://tenor.com/view/modern-family-goaway-squirt-bottle-shoo-gif-4979455',
+    'https://tenor.com/view/gravity-falls-bill-gravityfalls-no-gif-14949051',
+]
 reacted_messages = []
 
 start_time = time.time()
@@ -136,11 +141,9 @@ def tuple_to_str(obj, joinchar):
 
 
 def get_baddog_emoji(obj):
-    #guild = discord.utils.get(obj.guilds, id=712643495721959466)
-    #emoji = discord.utils.get(guild.emojis, id=774384621089062912)
+    guild = discord.utils.get(obj.guilds, id=712643495721959466)
+    emoji = discord.utils.get(guild.emojis, id=774384621089062912)
 
-    guild = discord.utils.get(obj.guilds, id=766490733632553000)
-    emoji = discord.utils.get(guild.emojis, id=774650992074948628)
     return emoji
 
 
@@ -353,9 +356,10 @@ async def on_member_join(member):
 async def on_reaction_add(reaction, user):
     global baddog_emoji
     global reacted_messages
-    if reaction.emoji == baddog_emoji and reaction.count >= 1 and reaction.message.id not in reacted_messages:
+    if reaction.emoji == baddog_emoji and reaction.count >= 3 and reaction.message.id not in reacted_messages:
         reacted_messages.append(reaction.message.id)
-        await reaction.message.channel.send("Bad dog!")
+        image = baddog_images[random.randint(0, (len(baddog_images) - 1))]
+        await reaction.message.channel.send("<@!{}> {}".format(reaction.message.author.id, image)
 
 
 @bot.command(name='test_history', hidden=True)
