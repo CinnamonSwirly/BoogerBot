@@ -28,6 +28,7 @@ intents.members = True
 bot = commands.Bot(command_prefix=command_prefix, owner_id=owner, intents=intents)
 
 forbidden_words = []
+reacted_messages = []
 
 start_time = time.time()
 
@@ -286,7 +287,7 @@ async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
     tenor_token = str(sys.argv[2])
     await bot.change_presence(activity=discord.Activity(name='$help', type=discord.ActivityType.listening))
-    await activity_check()
+    # TODO: await activity_check()
 
 
 @bot.event
@@ -336,7 +337,12 @@ async def on_member_join(member):
                               {'ID': str(member_id), 'guild': str(guild)})
 
 
-@bot.command(name='test_history')
+@bot.event
+async def on_reaction_add(reaction, user):
+    await reaction.message.channel.send(reaction.emoji.name)
+
+
+@bot.command(name='test_history', hidden=True)
 async def test_history(ctx):
     guild = ctx.guild
     member = await guild.fetch_member(ctx.author.id)
