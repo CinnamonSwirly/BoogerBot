@@ -28,6 +28,7 @@ intents.members = True
 bot = commands.Bot(command_prefix=command_prefix, owner_id=owner, intents=intents)
 
 forbidden_words = []
+baddog_emoji = ""
 reacted_messages = []
 
 start_time = time.time()
@@ -339,7 +340,7 @@ async def on_member_join(member):
 
 @bot.event
 async def on_reaction_add(reaction, user):
-    await reaction.message.channel.send(str(reaction.emoji))
+    await reaction.message.channel.send(str(reaction.emoji.id))
 
 
 @bot.command(name='test_history', hidden=True)
