@@ -8,6 +8,7 @@ import sys
 import psycopg2
 import asyncio
 import time
+from datetime import datetime, timedelta
 from psycopg2 import sql
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -22,9 +23,18 @@ command_prefix = os.getenv('COMMAND_PREFIX')
 on_command_error_message_GenericMessage = os.getenv('ON_COMMAND_ERROR_MESSAGE_GENERICMESSAGE')
 on_command_error_message_CommandInvokeError = os.getenv('ON_COMMAND_ERROR_MESSAGE_COMMANDINVOKEERROR')
 
-bot = commands.Bot(command_prefix=command_prefix, owner_id=owner)
+intents = discord.Intents.default()
+intents.members = True
+bot = commands.Bot(command_prefix=command_prefix, owner_id=owner, intents=intents)
 
 forbidden_words = []
+baddog_emoji = 0
+baddog_images = [
+    'https://tenor.com/view/lilo-and-stitch-stitch-bad-dog-spray-spraying-gif-5134293',
+    'https://tenor.com/view/modern-family-goaway-squirt-bottle-shoo-gif-4979455',
+    'https://tenor.com/view/gravity-falls-bill-gravityfalls-no-gif-14949051',
+]
+reacted_messages = []
 
 start_time = time.time()
 
@@ -130,6 +140,13 @@ def tuple_to_str(obj, joinchar):
     return result
 
 
+def get_baddog_emoji(obj):
+    guild = discord.utils.get(obj.guilds, id=712643495721959466)
+    emoji = discord.utils.get(guild.emojis, id=774384621089062912)
+
+    return emoji
+
+
 async def emoji_menu(context, starting_message: str, starting_emoji: list, success_message: str,
                      failure_message: str, timeout_value: int = 60, direct_message: bool = False,
                      style: str = "custom"):
@@ -230,13 +247,62 @@ async def close_menu(author, guild):
     return 1
 
 
+async def activity_check():
+    while True:
+        # Wait some time before running this again
+        then = datetime.now() + timedelta(minutes=1)
+        await discord.utils.sleep_until(then)
+
+        # Start fresh
+        guilds = []
+        for guild in bot.guilds:
+            guilds.append(guild.id)
+
+        # Get everyone who has joined but who hasn't been flagged active yet
+        Boogerball.cursor.execute("SELECT * FROM members WHERE activity_flag = 'false' AND member_guild IN %(guilds)s",
+                                  {'guilds': tuple(guilds), })
+        members = Boogerball.cursor.fetchall()
+
+        # Isolate the member IDs
+        member_ids = []
+        if len(members) != 0:
+            for row in members:
+                member_ids.append(row[0])
+        else:
+            print("No members returned from the members table")
+
+        for guild in bot.guilds:
+            print("Guild: {}".format(guild))
+            for member in member_ids:
+                print("Member: {}".format(member))
+                find_member = await guild.fetch_member(member)
+                if find_member is not None:
+                    print("Member Object: {}".format(find_member))
+                    for channel in await guild.fetch_channels():
+                        if type(channel) is discord.TextChannel:
+                            print("Channel: {}".format(channel))
+                            activity = await channel.history().get(author=find_member)
+                            if activity is not None:
+                                print("Activity check success for {}!".format(member))
+                                query = "UPDATE members SET activity_flag = 'true' WHERE member_id = %(ID)s"
+                                Boogerball.cursor.execute(query,
+                                                          {'ID': member})
+                            else:
+                                print("Activity check failed for {}!".format(member))
+                else:
+                    print("Member not found in Activity Check")
+
+
 @bot.event
 async def on_ready():
     global tenor_token
     print('\n')
     print(f'{bot.user.name} has connected to Discord!')
     tenor_token = str(sys.argv[2])
-    await bot.change_presence(activity=discord.Game(name='$help'))
+    await bot.change_presence(activity=discord.Activity(name='$help', type=discord.ActivityType.listening))
+    global baddog_emoji
+    baddog_emoji = get_baddog_emoji(bot)
+    # TODO: await activity_check()
 
 
 @bot.event
@@ -275,6 +341,43 @@ async def on_guild_join(guild):
     Boogerball.cursor.execute("INSERT INTO guilds (ID, nsfw) VALUES "
                               "(%(guild)s, false)",
                               {'guild': str(guild.id)})
+
+
+@bot.event
+async def on_member_join(member):
+    member_id = member.id
+    guild = member.guild.id
+    Boogerball.cursor.execute("INSERT INTO members (member_ID, member_guild, warning_flag, activity_flag) VALUES"
+                              " (%(ID)s, %(guild)s, 'false', 'false')",
+                              {'ID': str(member_id), 'guild': str(guild)})
+
+
+@bot.event
+async def on_reaction_add(reaction, user):
+    global baddog_emoji
+    global reacted_messages
+    if reaction.emoji == baddog_emoji and reaction.count >= 3 and reaction.message.id not in reacted_messages:
+        reacted_messages.append(reaction.message.id)
+        image = baddog_images[random.randint(0, (len(baddog_images) - 1))]
+        await reaction.message.channel.send("<@!{}> {}".format(reaction.message.author.id, image)
+
+
+@bot.command(name='test_history', hidden=True)
+async def test_history(ctx):
+    guild = ctx.guild
+    member = await guild.fetch_member(ctx.author.id)
+    channels = await guild.fetch_channels()
+
+    history = []
+    for channel in channels:
+        if type(channel) is discord.TextChannel:
+            history.append(await channel.history().get(author=member))
+
+    if history is None:
+        response = "Nothing to return"
+    else:
+        response = history
+    await ctx.send(response)
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
