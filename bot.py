@@ -28,7 +28,7 @@ intents.members = True
 bot = commands.Bot(command_prefix=command_prefix, owner_id=owner, intents=intents)
 
 forbidden_words = []
-baddog_emoji = ""
+baddog_emoji = 0
 reacted_messages = []
 
 start_time = time.time()
@@ -133,6 +133,15 @@ def check_if_nsfw(ctx):
 def tuple_to_str(obj, joinchar):
     result = "{}".format(joinchar).join(obj)
     return result
+
+
+def get_baddog_emoji(obj):
+    #guild = discord.utils.get(obj.guilds, id=712643495721959466)
+    #emoji = discord.utils.get(guild.emojis, id=774384621089062912)
+
+    guild = discord.utils.get(obj.guilds, id=766490733632553000)
+    emoji = discord.utils.get(guild.emojis, id=774650992074948628)
+    return emoji
 
 
 async def emoji_menu(context, starting_message: str, starting_emoji: list, success_message: str,
@@ -288,6 +297,8 @@ async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
     tenor_token = str(sys.argv[2])
     await bot.change_presence(activity=discord.Activity(name='$help', type=discord.ActivityType.listening))
+    global baddog_emoji
+    baddog_emoji = get_baddog_emoji(bot)
     # TODO: await activity_check()
 
 
@@ -340,7 +351,9 @@ async def on_member_join(member):
 
 @bot.event
 async def on_reaction_add(reaction, user):
-    await reaction.message.channel.send(str(reaction.emoji.id))
+    global baddog_emoji
+    if reaction.emoji == baddog_emoji:
+        await reaction.message.channel.send("Bad dog!")
 
 
 @bot.command(name='test_history', hidden=True)
