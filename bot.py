@@ -359,7 +359,8 @@ async def on_reaction_add(reaction, user):
     if reaction.emoji == baddog_emoji and reaction.count >= 3 and reaction.message.id not in reacted_messages:
         reacted_messages.append(reaction.message.id)
         image = baddog_images[random.randint(0, (len(baddog_images) - 1))]
-        await reaction.message.channel.send("<@!{}> {}".format(reaction.message.author.id, image))
+        await reaction.message.channel.send("<@!{}>".format(reaction.message.author.id))
+        await reaction.message.channel.send("{}".format(image))
 
 
 @bot.command(name='test_history', hidden=True)
