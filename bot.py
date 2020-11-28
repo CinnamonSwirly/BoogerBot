@@ -672,8 +672,8 @@ async def hug(ctx):
 
                     # Grab a hugging GIF from Tenor
                     hug_gif_search_terms = [
-                        "hug anime", "hug cute", "hug moe anime", "hugging anime", "snuggle cuddle hug cat love",
-                        "tackle hug anime", "anime hugs"
+                        "hug anime", "hug cute", "hug baymax", "hugging anime", "snuggle cuddle hug cat love",
+                        "tackle hug anime", "puppy cute hug", "animal cuddle hug"
                     ]
                     hug_gifs = tenor_get(
                         hug_gif_search_terms[random.randint(0, (len(hug_gif_search_terms) - 1))], 6)
