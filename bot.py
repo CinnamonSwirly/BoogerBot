@@ -140,11 +140,12 @@ def tuple_to_str(obj, joinchar):
     return result
 
 
-def get_baddog_emoji(obj):
-    guild = discord.utils.get(obj.guilds, id=712643495721959466)
-    emoji = discord.utils.get(guild.emojis, id=774384621089062912)
+# def get_baddog_emoji(obj):
+    # NOT IMPLEMENTED
+    # guild = discord.utils.get(obj.guilds, id=712643495721959466)
+    # emoji = discord.utils.get(guild.emojis, id=774384621089062912)
 
-    return emoji
+    # return emoji
 
 
 async def emoji_menu(context, starting_message: str, starting_emoji: list, success_message: str,
@@ -352,8 +353,10 @@ async def on_member_join(member):
                               {'ID': str(member_id), 'guild': str(guild)})
 
 
-@bot.event
-async def on_reaction_add(reaction, user):
+# @bot.event
+# async def on_reaction_add(reaction, user):
+    # NOT IMPLEMENTED
+    '''
     global baddog_emoji
     global reacted_messages
     if reaction.emoji == baddog_emoji and reaction.count >= 3 and reaction.message.id not in reacted_messages:
@@ -361,6 +364,7 @@ async def on_reaction_add(reaction, user):
         image = baddog_images[random.randint(0, (len(baddog_images) - 1))]
         await reaction.message.channel.send("<@!{}>".format(reaction.message.author.id))
         await reaction.message.channel.send("{}".format(image))
+    '''
 
 
 @bot.command(name='test_history', hidden=True)
@@ -665,6 +669,10 @@ async def hug(ctx):
                         "Guess who's getting a hug? <@!{}>!"
                         .format(str(member_id)),
                         "Extra! Extra! Read all about how <@!{}> is a cutie who got hugged!"
+                        .format(str(member_id)),
+                        "Hey you, <@!{}>! I got something for ya..."
+                        .format(str(member_id)),
+                        "Got a package here for a.. <@!{}>, that's you, right? Here you go!"
                         .format(str(member_id))
                     ]
 
@@ -673,8 +681,8 @@ async def hug(ctx):
 
                     # Grab a hugging GIF from Tenor
                     hug_gif_search_terms = [
-                        "hug anime", "hug cute", "hug moe anime", "hugging anime", "snuggle cuddle hug cat love",
-                        "tackle hug anime", "anime hugs"
+                        "hug anime", "hug cute", "hug baymax", "hugging anime", "snuggle cuddle hug cat love",
+                        "tackle hug anime", "puppy cute hug", "animal cuddle hug"
                     ]
                     hug_gifs = tenor_get(
                         hug_gif_search_terms[random.randint(0, (len(hug_gif_search_terms) - 1))], 6)
