@@ -301,8 +301,8 @@ async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
     tenor_token = str(sys.argv[2])
     await bot.change_presence(activity=discord.Activity(name='$help', type=discord.ActivityType.listening))
-    global baddog_emoji
-    baddog_emoji = get_baddog_emoji(bot)
+    # global baddog_emoji
+    # baddog_emoji = get_baddog_emoji(bot)
     # TODO: await activity_check()
 
 
