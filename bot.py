@@ -307,7 +307,7 @@ async def on_member_join(member):
 
 
 @bot.event
-async def on_member_leave(member):
+async def on_member_remove(member):
     print("A member left.")
     Boogerball.cursor.execute('SELECT message_ID FROM admissions WHERE member_ID = %(one)s',
                               {'one': str(member.id)})
