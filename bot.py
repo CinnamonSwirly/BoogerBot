@@ -235,7 +235,7 @@ async def on_ready():
     await bot.change_presence(activity=discord.Activity(name='$help', type=discord.ActivityType.listening))
     Boogerball.cursor.execute('SELECT message_ID FROM admissions')
     for ID in Boogerball.cursor.fetchall():
-        voting_messages.append(ID)
+        voting_messages.append(ID[0])
     print(voting_messages)
 
 
