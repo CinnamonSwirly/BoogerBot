@@ -303,7 +303,6 @@ async def stats(ctx):
     end_time_string = "System Uptime: {} days, {} hours, {} minutes, {} seconds"\
         .format(end_time_days, end_time_hours, end_time_minutes, end_time_seconds)
     await ctx.send(end_time_string)
-    await bot.close()
 
 
 @bot.command(name='boop', help='boop someone!', hidden=True)
