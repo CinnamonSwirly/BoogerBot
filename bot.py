@@ -311,15 +311,16 @@ async def on_member_remove(member):
     print("A member left.")
     Boogerball.cursor.execute('SELECT message_ID FROM admissions WHERE member_ID = %(one)s',
                               {'one': str(member.id)})
-    result = Boogerball.cursor.fetchone()[0]
+    result = Boogerball.cursor.fetchone()
 
     if result is not None:
+        result = result[0]
         print("They had a pending admission.")
         voting_channel = await bot.fetch_channel(787401853809328148)
         print("The voting channel is {}".format(voting_channel.name))
         message = await voting_channel.fetch_message(result)
         print("The voting message is {}".format(message.content))
-        await message.edit(content=message.content + "\n\nUPDATE: This user is gone.")
+        await message.edit(content=message.content + "\n\nUPDATE: This user left our server.")
 
         voting_messages.remove(result)
         Boogerball.cursor.execute('DELETE FROM admissions WHERE member_ID = %(one)s',
@@ -327,6 +328,9 @@ async def on_member_remove(member):
     else:
         print("They did not have a pending admission.")
         pass
+
+    departure_channel = await bot.fetch_channel(787446451906805771)
+    await departure_channel.send("<@!{}> has left the server.")
 
 
 @bot.event
