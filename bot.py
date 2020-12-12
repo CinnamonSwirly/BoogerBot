@@ -276,8 +276,8 @@ async def on_guild_join(guild):
 async def on_member_join(member):
     if member.guild.id == 766490733632553000:
         print("New member joined, {}".format(member.name))
-        voting_channel = bot.fetch_channel('787401853809328148')
-        welcome_channel = bot.fetch_channel('766490733632553004')
+        voting_channel = await bot.fetch_channel('787401853809328148')
+        welcome_channel = await bot.fetch_channel('766490733632553004')
 
         print("Sending welcome message")
         await welcome_channel.send("Welcome to our cottage, <@!{}>! Please relax and be patient. Our community wants"
