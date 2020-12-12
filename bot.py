@@ -308,11 +308,13 @@ async def on_member_join(member):
 
 @bot.event
 async def on_member_leave(member):
+    print("A member left.")
     Boogerball.cursor.execute('SELECT message_ID FROM admissions WHERE member_ID = %(one)s',
                               {'one': str(member.id)})
     result = Boogerball.cursor.fetchone()
 
     if len(str(result[0])) > 2:
+        print("They had a pending admission.")
         voting_channel = await bot.fetch_channel('787401853809328148')
         message = await voting_channel.fetch_message(int(result[0]))
         await message.edit(message.content + "\n\nUPDATE: This user left before we could confirm them.")
@@ -321,6 +323,7 @@ async def on_member_leave(member):
         Boogerball.cursor.execute('DELETE FROM admissions WHERE member_ID = %(one)s',
                                   {'one': str(member.id)})
     else:
+        print("They did not have a pending admission.")
         pass
 
 
