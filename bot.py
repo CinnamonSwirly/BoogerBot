@@ -286,7 +286,7 @@ async def on_member_join(member):
 
         print("Sending welcome message")
         await welcome_channel.send("Welcome to our cottage, <@!{}>! Please relax and be patient. Our community wants "
-                                   "to stay chill, so we may want to get to know you before letting you in. Someone"
+                                   "to stay chill, so we may want to get to know you before letting you in. Someone "
                                    "will come say hello soon!".format(member.id))
         print("Sending voting message")
         voting_message = await voting_channel.send("<@!{}> has joined our server. Please get to know them and "
@@ -303,6 +303,24 @@ async def on_member_join(member):
         voting_messages.append(voting_message.id)
     else:
         print("Someone joined, but it was not the right guild. Ignoring...")
+        pass
+
+
+@bot.event
+async def on_member_leave(member):
+    Boogerball.cursor.execute('SELECT message_ID FROM admissions WHERE member_ID = %(one)s',
+                              {'one': str(member.id)})
+    result = Boogerball.cursor.fetchone()
+
+    if len(str(result[0])) > 2:
+        voting_channel = await bot.fetch_channel('787401853809328148')
+        message = await voting_channel.fetch_message(int(result[0]))
+        await message.edit(message.content + "\n\nUPDATE: This user left before we could confirm them.")
+
+        voting_messages.remove(result[0])
+        Boogerball.cursor.execute('DELETE FROM admissions WHERE member_ID = %(one)s',
+                                  {'one': str(member.id)})
+    else:
         pass
 
 
@@ -335,6 +353,7 @@ async def on_raw_reaction_add(payload):
 
             if newbie is not None:
                 await newbie.add_roles(admission_role, reason='The community voted to allow them in.')
+                await message.edit(message.content + "\n\nUPDATE: We confirmed this user!")
 
             voting_messages.remove(payload.message_id)
             Boogerball.cursor.execute('DELETE FROM admissions WHERE message_ID = %(one)s',
@@ -351,6 +370,8 @@ async def on_raw_reaction_add(payload):
 
             if newbie is not None:
                 await message.guild.ban(newbie, reason='The community voted to reject you. Goodbye.')
+                await message.edit(message.content + "\n\nUPDATE: We rejected this user.")
+
             voting_messages.remove(payload.message_id)
             Boogerball.cursor.execute('DELETE FROM admissions WHERE message_ID = %(one)s',
                                       {'one': str(payload.message_id)})
