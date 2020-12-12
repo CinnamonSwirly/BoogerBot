@@ -315,8 +315,10 @@ async def on_member_remove(member):
 
     if result is not None:
         print("They had a pending admission.")
-        voting_channel = await bot.fetch_channel('787401853809328148')
-        message = await voting_channel.fetch_message(int(result))
+        voting_channel = await bot.fetch_channel(787401853809328148)
+        print("The voting channel is {}".format(voting_channel.name))
+        message = await voting_channel.fetch_message(result)
+        print("The voting message is {}".format(message.content))
         await message.edit(content=message.content + "\n\nUPDATE: This user is gone.")
 
         voting_messages.remove(result)
@@ -331,7 +333,7 @@ async def on_member_remove(member):
 async def on_raw_reaction_add(payload):
     if payload.message_id in voting_messages:
         print("A voting message was reacted on.")
-        voting_channel = await bot.fetch_channel('787401853809328148')
+        voting_channel = await bot.fetch_channel(787401853809328148)
         message = await voting_channel.fetch_message(payload.message_id)
 
         moderator_role = message.guild.get_role(766755768023515186)
