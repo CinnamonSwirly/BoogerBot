@@ -309,7 +309,7 @@ async def on_member_join(member):
 async def on_reaction_add(reaction, user):
     if reaction.message.id in voting_messages:
         print("A voting message was reacted on.")
-        moderator_role = reaction.message.guild.get_role(766755768023515186)
+        moderator_role = await reaction.message.guild.get_role(766755768023515186)
         moderator_count = len(moderator_role.members)
         majority = moderator_count // 2 + 1
         print("There are {} moderators".format(moderator_count))
