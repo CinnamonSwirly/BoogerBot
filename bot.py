@@ -310,15 +310,24 @@ async def on_reaction_add(reaction, user):
     if reaction.message.id in voting_messages:
         print("A voting message was reacted on.")
         moderator_role = reaction.message.guild.get_role(766755768023515186)
+        admission_role = reaction.message.guild.get_role(766491477122744370)
         moderator_count = len(moderator_role.members)
-        majority = moderator_count // 2 + 1
+        majority = max(moderator_count // 3 + 1, 2)
         print("There are {} moderators".format(moderator_count))
         green = discord.utils.get(reaction.message.reactions, emoji="👍")
         red = discord.utils.get(reaction.message.reactions, emoji="👎")
         if green.count >= majority:
             print("A majority was reached to admit the newbie.")
+            await user.add_roles(admission_role, reason='The community voted to allow them in.')
+            voting_messages.remove(reaction.message.id)
+            Boogerball.cursor.execute('DELETE FROM admissions WHERE message_ID = %(one)s',
+                                      {'one': str(reaction.message.id)})
         if red.count >= majority:
             print("A majority was reached to reject the newbie.")
+            await reaction.message.guild.ban(user, reason='The community voted to reject you. Goodbye.')
+            voting_messages.remove(reaction.message.id)
+            Boogerball.cursor.execute('DELETE FROM admissions WHERE message_ID = %(one)s',
+                                      {'one': str(reaction.message.id)})
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
