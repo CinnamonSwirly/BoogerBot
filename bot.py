@@ -307,31 +307,43 @@ async def on_member_join(member):
 
 
 @bot.event
-async def on_reaction_add(reaction, user):
-    if reaction.message.id in voting_messages:
+async def on_raw_reaction_add(payload):
+    if payload.message_id in voting_messages:
         print("A voting message was reacted on.")
-        moderator_role = reaction.message.guild.get_role(766755768023515186)
-        admission_role = reaction.message.guild.get_role(766491477122744370)
+        voting_channel = await bot.fetch_channel('787401853809328148')
+        message = await voting_channel.fetch_message(payload.message_id)
+
+        moderator_role = message.guild.get_role(766755768023515186)
+        admission_role = message.guild.get_role(766491477122744370)
+
         moderator_count = len(moderator_role.members)
         majority = max(moderator_count // 3 + 1, 2)
         print("There are {} moderators".format(moderator_count))
-        green = discord.utils.get(reaction.message.reactions, emoji="👍")
-        red = discord.utils.get(reaction.message.reactions, emoji="👎")
+
+        green = discord.utils.get(message.reactions, emoji="👍")
+        red = discord.utils.get(message.reactions, emoji="👎")
+
         if green.count >= majority:
             print("A majority was reached to admit the newbie.")
-            await user.add_roles(admission_role, reason='The community voted to allow them in.')
-            voting_messages.remove(reaction.message.id)
+            Boogerball.cursor.execute('SELECT member_ID FROM admissions WHERE message_ID = %(one)s',
+                                      {'one': str(payload.message_id)})
+            newbie = await message.guild.fetch_member(Boogerball.cursor.fetchone())
+            await newbie.add_roles(admission_role, reason='The community voted to allow them in.')
+            voting_messages.remove(payload.message_id)
             Boogerball.cursor.execute('DELETE FROM admissions WHERE message_ID = %(one)s',
-                                      {'one': str(reaction.message.id)})
+                                      {'one': str(payload.message_id)})
         if red.count >= majority:
             print("A majority was reached to reject the newbie.")
-            await reaction.message.guild.ban(user, reason='The community voted to reject you. Goodbye.')
-            voting_messages.remove(reaction.message.id)
+            Boogerball.cursor.execute('SELECT member_ID FROM admissions WHERE message_ID = %(one)s',
+                                      {'one': str(payload.message_id)})
+            newbie = await message.guild.fetch_member(Boogerball.cursor.fetchone())
+            await message.guild.ban(newbie, reason='The community voted to reject you. Goodbye.')
+            voting_messages.remove(payload.message_id)
             Boogerball.cursor.execute('DELETE FROM admissions WHERE message_ID = %(one)s',
-                                      {'one': str(reaction.message.id)})
+                                      {'one': str(payload.message_id)})
     else:
         print("A message was reacted on, but I'm not watching it so I don't care")
-        print(reaction.message.id)
+        print(payload.message_id)
         print(voting_messages)
 
 
