@@ -27,6 +27,7 @@ bot = commands.Bot(command_prefix=command_prefix, owner_id=owner, intents=intent
 
 start_time = time.time()
 
+voting_messages = []
 
 class DatabaseConnection:
     def __init__(self):
@@ -232,6 +233,9 @@ async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
     tenor_token = str(sys.argv[2])
     await bot.change_presence(activity=discord.Activity(name='$help', type=discord.ActivityType.listening))
+    Boogerball.cursor.execute('SELECT message_ID FROM admissions')
+    for ID in Boogerball.cursor.fetchall():
+        voting_messages.append(ID)
 
 
 @bot.event
@@ -280,18 +284,41 @@ async def on_member_join(member):
         welcome_channel = await bot.fetch_channel('766490733632553004')
 
         print("Sending welcome message")
-        await welcome_channel.send("Welcome to our cottage, <@!{}>! Please relax and be patient. Our community wants"
+        await welcome_channel.send("Welcome to our cottage, <@!{}>! Please relax and be patient. Our community wants "
                                    "to stay chill, so we may want to get to know you before letting you in. Someone"
                                    "will come say hello soon!".format(member.id))
         print("Sending voting message")
         voting_message = await voting_channel.send("<@!{}> has joined our server. Please get to know them and "
                                                    "vote here whether or not to let them in.".format(member.id))
         print("Adding reactions")
-        await voting_message.add_reaction("✔")
-        await voting_message.add_reaction("❌")
+        await voting_message.add_reaction("👍")
+        await voting_message.add_reaction("👎")
+
+        print("Submitting IDs to SQL")
+        Boogerball.cursor.execute("INSERT INTO admissions (message_ID, member_ID) VALUES (%(one)s, %(two)s)",
+                                  {'one': str(voting_message.id), 'two': str(member.id)})
+
+        print("Adding message ID to list in memory")
+        voting_messages.append(voting_message.id)
     else:
         print("Someone joined, but it was not the right guild. Ignoring...")
         pass
+
+
+@bot.event
+async def on_reaction_add(reaction, user):
+    if reaction.message.id in voting_messages:
+        print("A voting message was reacted on.")
+        moderator_role = reaction.message.guild.get_role(766755768023515186)
+        moderator_count = len(moderator_role.members)
+        majority = moderator_count // 2 + 1
+        print("There are {} moderators".format(moderator_count))
+        green = discord.utils.get(reaction.message.reactions, emoji="👍")
+        red = discord.utils.get(reaction.message.reactions, emoji="👎")
+        if green.count >= majority:
+            print("A majority was reached to admit the newbie.")
+        if red.count >= majority:
+            print("A majority was reached to reject the newbie.")
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
