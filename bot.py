@@ -327,8 +327,15 @@ async def on_raw_reaction_add(payload):
             print("A majority was reached to admit the newbie.")
             Boogerball.cursor.execute('SELECT member_ID FROM admissions WHERE message_ID = %(one)s',
                                       {'one': str(payload.message_id)})
-            newbie = await message.guild.fetch_member(Boogerball.cursor.fetchone()[0])
-            await newbie.add_roles(admission_role, reason='The community voted to allow them in.')
+
+            try:
+                newbie = await message.guild.fetch_member(Boogerball.cursor.fetchone()[0])
+            except discord.errors.NotFound:
+                newbie = None
+
+            if newbie is not None:
+                await newbie.add_roles(admission_role, reason='The community voted to allow them in.')
+
             voting_messages.remove(payload.message_id)
             Boogerball.cursor.execute('DELETE FROM admissions WHERE message_ID = %(one)s',
                                       {'one': str(payload.message_id)})
@@ -336,8 +343,14 @@ async def on_raw_reaction_add(payload):
             print("A majority was reached to reject the newbie.")
             Boogerball.cursor.execute('SELECT member_ID FROM admissions WHERE message_ID = %(one)s',
                                       {'one': str(payload.message_id)})
-            newbie = await message.guild.fetch_member(Boogerball.cursor.fetchone()[0])
-            await message.guild.ban(newbie, reason='The community voted to reject you. Goodbye.')
+
+            try:
+                newbie = await message.guild.fetch_member(Boogerball.cursor.fetchone()[0])
+            except discord.errors.NotFound:
+                newbie = None
+
+            if newbie is not None:
+                await message.guild.ban(newbie, reason='The community voted to reject you. Goodbye.')
             voting_messages.remove(payload.message_id)
             Boogerball.cursor.execute('DELETE FROM admissions WHERE message_ID = %(one)s',
                                       {'one': str(payload.message_id)})
