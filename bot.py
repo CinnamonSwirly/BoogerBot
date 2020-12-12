@@ -275,18 +275,22 @@ async def on_guild_join(guild):
 @bot.event
 async def on_member_join(member):
     if member.guild.id == '766490733632553000':
+        print("New member joined, {}".format(member.name))
         voting_channel = bot.fetch_channel('787401853809328148')
         welcome_channel = bot.fetch_channel('766490733632553004')
 
+        print("Sending welcome message")
         await welcome_channel.send("Welcome to our cottage, <@!{}>! Please relax and be patient. Our community wants"
                                    "to stay chill, so we may want to get to know you before letting you in. Someone"
-                                   "will come say hello soon!")
+                                   "will come say hello soon!".format(member.id))
+        print("Sending voting message")
         voting_message = await voting_channel.send("<@!{}> has joined our server. Please get to know them and "
-                                                   "vote here whether or not to let them in.")
-        voting_message.add_reaction("✔")
-        voting_message.add_reaction("❌")
-        pass
+                                                   "vote here whether or not to let them in.".format(member.id))
+        print("Adding reactions")
+        await voting_message.add_reaction("✔")
+        await voting_message.add_reaction("❌")
     else:
+        print("Someone joined, but it was not the right guild. Ignoring...")
         pass
 
 
