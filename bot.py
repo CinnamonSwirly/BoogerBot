@@ -352,7 +352,7 @@ async def on_raw_reaction_add(payload):
 
             if len(str(result)) > 5:
                 try:
-                    newbie = await message.guild.fetch_member()
+                    newbie = await message.guild.fetch_member(result)
                 except discord.errors.NotFound:
                     newbie = None
             else:
@@ -377,7 +377,7 @@ async def on_raw_reaction_add(payload):
 
             if len(str(result)) > 5:
                 try:
-                    newbie = await message.guild.fetch_member()
+                    newbie = await message.guild.fetch_member(result)
                 except discord.errors.NotFound:
                     newbie = None
             else:
