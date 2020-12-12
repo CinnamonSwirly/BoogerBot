@@ -236,7 +236,6 @@ async def on_ready():
     Boogerball.cursor.execute('SELECT message_ID FROM admissions')
     for ID in Boogerball.cursor.fetchall():
         voting_messages.append(ID[0])
-    print(voting_messages)
 
 
 @bot.event
@@ -280,53 +279,44 @@ async def on_guild_join(guild):
 @bot.event
 async def on_member_join(member):
     if member.guild.id == 766490733632553000:
-        print("New member joined, {}".format(member.name))
         voting_channel = await bot.fetch_channel('787401853809328148')
         welcome_channel = await bot.fetch_channel('766490733632553004')
 
-        print("Sending welcome message")
         await welcome_channel.send("Welcome to our cottage, <@!{}>! Please relax and be patient. Our community wants "
                                    "to stay chill, so we may want to get to know you before letting you in. Someone "
                                    "will come say hello soon!".format(member.id))
-        print("Sending voting message")
+
         voting_message = await voting_channel.send("<@!{}> has joined our server. Please get to know them and "
                                                    "vote here whether or not to let them in.".format(member.id))
-        print("Adding reactions")
+
         await voting_message.add_reaction("👍")
         await voting_message.add_reaction("👎")
 
-        print("Submitting IDs to SQL")
         Boogerball.cursor.execute("INSERT INTO admissions (message_ID, member_ID) VALUES (%(one)s, %(two)s)",
                                   {'one': str(voting_message.id), 'two': str(member.id)})
 
-        print("Adding message ID to list in memory")
         voting_messages.append(voting_message.id)
+
     else:
-        print("Someone joined, but it was not the right guild. Ignoring...")
         pass
 
 
 @bot.event
 async def on_member_remove(member):
-    print("A member left.")
     Boogerball.cursor.execute('SELECT message_ID FROM admissions WHERE member_ID = %(one)s',
                               {'one': str(member.id)})
     result = Boogerball.cursor.fetchone()
 
     if result is not None:
         result = result[0]
-        print("They had a pending admission.")
         voting_channel = await bot.fetch_channel(787401853809328148)
-        print("The voting channel is {}".format(voting_channel.name))
         message = await voting_channel.fetch_message(result)
-        print("The voting message is {}".format(message.content))
         await message.edit(content=message.content + "\n\nUPDATE: This user left our server.")
 
         voting_messages.remove(result)
         Boogerball.cursor.execute('DELETE FROM admissions WHERE member_ID = %(one)s',
                                   {'one': str(member.id)})
     else:
-        print("They did not have a pending admission.")
         pass
 
     departure_channel = await bot.fetch_channel(787446451906805771)
@@ -336,7 +326,6 @@ async def on_member_remove(member):
 @bot.event
 async def on_raw_reaction_add(payload):
     if payload.message_id in voting_messages:
-        print("A voting message was reacted on.")
         voting_channel = await bot.fetch_channel(787401853809328148)
         message = await voting_channel.fetch_message(payload.message_id)
 
@@ -345,13 +334,11 @@ async def on_raw_reaction_add(payload):
 
         moderator_count = len(moderator_role.members)
         majority = max(moderator_count // 3 + 1, 2)
-        print("There are {} moderators".format(moderator_count))
 
         green = discord.utils.get(message.reactions, emoji="👍")
         red = discord.utils.get(message.reactions, emoji="👎")
 
         if green.count >= majority:
-            print("A majority was reached to admit the newbie.")
             Boogerball.cursor.execute('SELECT member_ID FROM admissions WHERE message_ID = %(one)s',
                                       {'one': str(payload.message_id)})
             result = Boogerball.cursor.fetchone()[0]
@@ -372,7 +359,6 @@ async def on_raw_reaction_add(payload):
             Boogerball.cursor.execute('DELETE FROM admissions WHERE message_ID = %(one)s',
                                       {'one': str(payload.message_id)})
         if red.count >= majority:
-            print("A majority was reached to reject the newbie.")
             Boogerball.cursor.execute('SELECT member_ID FROM admissions WHERE message_ID = %(one)s',
                                       {'one': str(payload.message_id)})
             result = Boogerball.cursor.fetchone()[0]
@@ -394,9 +380,7 @@ async def on_raw_reaction_add(payload):
                 await message.edit(content=message.content + "\n\nUPDATE: We rejected this user.")
 
     else:
-        print("A message was reacted on, but I'm not watching it so I don't care")
-        print(payload.message_id)
-        print(voting_messages)
+        pass
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
