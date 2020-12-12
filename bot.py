@@ -313,11 +313,11 @@ async def on_member_remove(member):
                               {'one': str(member.id)})
     result = Boogerball.cursor.fetchone()
 
-    if len(str(result[0])) > 2:
+    if len(str(result[0])) > 5:
         print("They had a pending admission.")
         voting_channel = await bot.fetch_channel('787401853809328148')
         message = await voting_channel.fetch_message(int(result[0]))
-        await message.edit(content=str(message.content + "\n\nUPDATE: This user left before we could confirm them."))
+        await message.edit(content=message.content + "\n\nUPDATE: This user left before we could confirm them.")
 
         voting_messages.remove(result[0])
         Boogerball.cursor.execute('DELETE FROM admissions WHERE member_ID = %(one)s',
@@ -348,15 +348,19 @@ async def on_raw_reaction_add(payload):
             print("A majority was reached to admit the newbie.")
             Boogerball.cursor.execute('SELECT member_ID FROM admissions WHERE message_ID = %(one)s',
                                       {'one': str(payload.message_id)})
+            result = Boogerball.cursor.fetchone()[0]
 
-            try:
-                newbie = await message.guild.fetch_member(Boogerball.cursor.fetchone()[0])
-            except discord.errors.NotFound:
+            if len(str(result)) > 5:
+                try:
+                    newbie = await message.guild.fetch_member()
+                except discord.errors.NotFound:
+                    newbie = None
+            else:
                 newbie = None
 
             if newbie is not None:
                 await newbie.add_roles(admission_role, reason='The community voted to allow them in.')
-                await message.edit(content=str(message.content + "\n\nUPDATE: We confirmed this user!"))
+                await message.edit(content=message.content + "\n\nUPDATE: We confirmed this user!")
 
             voting_messages.remove(payload.message_id)
             Boogerball.cursor.execute('DELETE FROM admissions WHERE message_ID = %(one)s',
@@ -365,15 +369,19 @@ async def on_raw_reaction_add(payload):
             print("A majority was reached to reject the newbie.")
             Boogerball.cursor.execute('SELECT member_ID FROM admissions WHERE message_ID = %(one)s',
                                       {'one': str(payload.message_id)})
+            result = Boogerball.cursor.fetchone()[0]
 
-            try:
-                newbie = await message.guild.fetch_member(Boogerball.cursor.fetchone()[0])
-            except discord.errors.NotFound:
+            if len(str(result)) > 5:
+                try:
+                    newbie = await message.guild.fetch_member()
+                except discord.errors.NotFound:
+                    newbie = None
+            else:
                 newbie = None
 
             if newbie is not None:
                 await message.guild.ban(newbie, reason='The community voted to reject you. Goodbye.')
-                await message.edit(content=str(message.content + "\n\nUPDATE: We rejected this user."))
+                await message.edit(content=message.content + "\n\nUPDATE: We rejected this user.")
 
             voting_messages.remove(payload.message_id)
             Boogerball.cursor.execute('DELETE FROM admissions WHERE message_ID = %(one)s',
