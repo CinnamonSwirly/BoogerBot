@@ -329,6 +329,10 @@ async def on_reaction_add(reaction, user):
             voting_messages.remove(reaction.message.id)
             Boogerball.cursor.execute('DELETE FROM admissions WHERE message_ID = %(one)s',
                                       {'one': str(reaction.message.id)})
+    else:
+        print("A message was reacted on, but I'm not watching it so I don't care")
+        print(reaction.message.id)
+        print(voting_messages)
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
