@@ -278,9 +278,9 @@ async def on_guild_join(guild):
 
 @bot.event
 async def on_member_join(member):
-    if member.guild.id == 766490733632553000:
-        voting_channel = await bot.fetch_channel('787401853809328148')
-        welcome_channel = await bot.fetch_channel('766490733632553004')
+    if member.guild.id == 782243401809920030:
+        voting_channel = await bot.fetch_channel(787449046271918080)
+        welcome_channel = await bot.fetch_channel(782292714845634601)
 
         await welcome_channel.send("Welcome to our cottage, <@!{}>! Please relax and be patient. Our community wants "
                                    "to stay chill, so we may want to get to know you before letting you in. Someone "
@@ -309,7 +309,7 @@ async def on_member_remove(member):
 
     if result is not None:
         result = result[0]
-        voting_channel = await bot.fetch_channel(787401853809328148)
+        voting_channel = await bot.fetch_channel(787449046271918080)
         message = await voting_channel.fetch_message(result)
         await message.edit(content=message.content + "\n\nUPDATE: This user left our server.")
 
@@ -319,18 +319,18 @@ async def on_member_remove(member):
     else:
         pass
 
-    departure_channel = await bot.fetch_channel(787446451906805771)
+    departure_channel = await bot.fetch_channel(787448656382787614)
     await departure_channel.send("<@!{}> has left the server.".format(member.id))
 
 
 @bot.event
 async def on_raw_reaction_add(payload):
     if payload.message_id in voting_messages:
-        voting_channel = await bot.fetch_channel(787401853809328148)
+        voting_channel = await bot.fetch_channel(787449046271918080)
         message = await voting_channel.fetch_message(payload.message_id)
 
-        moderator_role = message.guild.get_role(766755768023515186)
-        admission_role = message.guild.get_role(766491477122744370)
+        moderator_role = message.guild.get_role(782291841060044848)
+        admission_role = message.guild.get_role(782292198183272448)
 
         moderator_count = len(moderator_role.members)
         majority = max(moderator_count // 3 + 1, 2)
