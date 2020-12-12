@@ -311,9 +311,9 @@ async def on_member_remove(member):
     print("A member left.")
     Boogerball.cursor.execute('SELECT message_ID FROM admissions WHERE member_ID = %(one)s',
                               {'one': str(member.id)})
-    result = Boogerball.cursor.fetchone()
+    result = Boogerball.cursor.fetchone()[0]
 
-    if len(str(result[0])) > 5:
+    if result is not None:
         print("They had a pending admission.")
         voting_channel = await bot.fetch_channel('787401853809328148')
         message = await voting_channel.fetch_message(int(result[0]))
@@ -350,7 +350,7 @@ async def on_raw_reaction_add(payload):
                                       {'one': str(payload.message_id)})
             result = Boogerball.cursor.fetchone()[0]
 
-            if len(str(result)) > 5:
+            if result is not None:
                 try:
                     newbie = await message.guild.fetch_member(result)
                 except discord.errors.NotFound:
@@ -375,7 +375,7 @@ async def on_raw_reaction_add(payload):
             Boogerball.cursor.execute('DELETE FROM admissions WHERE message_ID = %(one)s',
                                       {'one': str(payload.message_id)})
 
-            if len(str(result)) > 5:
+            if result is not None:
                 try:
                     newbie = await message.guild.fetch_member(result)
                 except discord.errors.NotFound:
