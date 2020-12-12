@@ -236,6 +236,7 @@ async def on_ready():
     Boogerball.cursor.execute('SELECT message_ID FROM admissions')
     for ID in Boogerball.cursor.fetchall():
         voting_messages.append(ID)
+    print(voting_messages)
 
 
 @bot.event
