@@ -313,7 +313,11 @@ async def on_member_remove(member):
         message = await voting_channel.fetch_message(result)
         await message.edit(content=message.content + "\n\nUPDATE: This user left our server.")
 
-        voting_messages.remove(result)
+        try:
+            voting_messages.remove(result)
+        except ValueError:
+            pass
+
         Boogerball.cursor.execute('DELETE FROM admissions WHERE member_ID = %(one)s',
                                   {'one': str(member.id)})
     else:
@@ -341,9 +345,10 @@ async def on_raw_reaction_add(payload):
         if green.count >= majority:
             Boogerball.cursor.execute('SELECT member_ID FROM admissions WHERE message_ID = %(one)s',
                                       {'one': str(payload.message_id)})
-            result = Boogerball.cursor.fetchone()[0]
+            result = Boogerball.cursor.fetchone()
 
             if result is not None:
+                result = result[0]
                 try:
                     newbie = await message.guild.fetch_member(result)
                 except discord.errors.NotFound:
