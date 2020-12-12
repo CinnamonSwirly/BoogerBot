@@ -91,7 +91,7 @@ def wikipedia_get(argument):
 
 
 def check_if_command_allowed(command, server, user):
-    #TODO: Check if the user has permission to execute the command
+    # TODO: Check if the user has permission to execute the command
     pass
 
 
