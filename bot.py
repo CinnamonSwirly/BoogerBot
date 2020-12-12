@@ -1,4 +1,3 @@
-import os
 import discord
 import random
 import requests
@@ -8,33 +7,23 @@ import sys
 import psycopg2
 import asyncio
 import time
-from datetime import datetime, timedelta
 from psycopg2 import sql
 from discord.ext import commands
-from dotenv import load_dotenv
 
 """
 Reading messages we will be using from the .env file included with the bot
 This method allows editing of the messages without digging through code
 """
-load_dotenv()
-owner = int(os.getenv('OWNER_ID'))
-command_prefix = os.getenv('COMMAND_PREFIX')
-on_command_error_message_GenericMessage = os.getenv('ON_COMMAND_ERROR_MESSAGE_GENERICMESSAGE')
-on_command_error_message_CommandInvokeError = os.getenv('ON_COMMAND_ERROR_MESSAGE_COMMANDINVOKEERROR')
+owner = 115947067511144451
+command_prefix = '$'
+on_command_error_message_GenericMessage = \
+    'Something terrible happened, sorry. My owner will fix it.'
+on_command_error_message_CommandInvokeError = \
+    'Sorry, I ran into a problem. I let my owner know and they will work on it!'
 
 intents = discord.Intents.default()
 intents.members = True
 bot = commands.Bot(command_prefix=command_prefix, owner_id=owner, intents=intents)
-
-forbidden_words = []
-baddog_emoji = 0
-baddog_images = [
-    'https://tenor.com/view/lilo-and-stitch-stitch-bad-dog-spray-spraying-gif-5134293',
-    'https://tenor.com/view/modern-family-goaway-squirt-bottle-shoo-gif-4979455',
-    'https://tenor.com/view/gravity-falls-bill-gravityfalls-no-gif-14949051',
-]
-reacted_messages = []
 
 start_time = time.time()
 
@@ -56,10 +45,6 @@ class CannotDirectMessage(CustomError):
 
 
 Boogerball = DatabaseConnection()
-
-# TODO: Write a function to collect all of the forbidden words and stick them in the above list
-
-# TODO: Write a function to save current attributes of a forbidden word to SQL
 
 
 def check_plural(number, caps: bool = False):
@@ -138,14 +123,6 @@ def check_if_nsfw(ctx):
 def tuple_to_str(obj, joinchar):
     result = "{}".format(joinchar).join(obj)
     return result
-
-
-def get_baddog_emoji(obj):
-    # NOT IMPLEMENTED
-    guild = None
-    emoji = None
-
-    return emoji
 
 
 async def emoji_menu(context, starting_message: str, starting_emoji: list, success_message: str,
@@ -248,53 +225,6 @@ async def close_menu(author, guild):
     return 1
 
 
-async def activity_check():
-    # NOT IMPLEMENTED
-    while True:
-        # Wait some time before running this again
-        then = datetime.now() + timedelta(minutes=1)
-        await discord.utils.sleep_until(then)
-
-        # Start fresh
-        guilds = []
-        for guild in bot.guilds:
-            guilds.append(guild.id)
-
-        # Get everyone who has joined but who hasn't been flagged active yet
-        Boogerball.cursor.execute("SELECT * FROM members WHERE activity_flag = 'false' AND member_guild IN %(guilds)s",
-                                  {'guilds': tuple(guilds), })
-        members = Boogerball.cursor.fetchall()
-
-        # Isolate the member IDs
-        member_ids = []
-        if len(members) != 0:
-            for row in members:
-                member_ids.append(row[0])
-        else:
-            print("No members returned from the members table")
-
-        for guild in bot.guilds:
-            print("Guild: {}".format(guild))
-            for member in member_ids:
-                print("Member: {}".format(member))
-                find_member = await guild.fetch_member(member)
-                if find_member is not None:
-                    print("Member Object: {}".format(find_member))
-                    for channel in await guild.fetch_channels():
-                        if type(channel) is discord.TextChannel:
-                            print("Channel: {}".format(channel))
-                            activity = await channel.history().get(author=find_member)
-                            if activity is not None:
-                                print("Activity check success for {}!".format(member))
-                                query = "UPDATE members SET activity_flag = 'true' WHERE member_id = %(ID)s"
-                                Boogerball.cursor.execute(query,
-                                                          {'ID': member})
-                            else:
-                                print("Activity check failed for {}!".format(member))
-                else:
-                    print("Member not found in Activity Check")
-
-
 @bot.event
 async def on_ready():
     global tenor_token
@@ -302,9 +232,6 @@ async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
     tenor_token = str(sys.argv[2])
     await bot.change_presence(activity=discord.Activity(name='$help', type=discord.ActivityType.listening))
-    global baddog_emoji
-    baddog_emoji = get_baddog_emoji(bot)
-    # TODO: await activity_check()
 
 
 @bot.event
@@ -347,42 +274,8 @@ async def on_guild_join(guild):
 
 @bot.event
 async def on_member_join(member):
-    member_id = member.id
-    guild = member.guild.id
-    Boogerball.cursor.execute("INSERT INTO members (member_ID, member_guild, warning_flag, activity_flag) VALUES"
-                              " (%(ID)s, %(guild)s, 'false', 'false')",
-                              {'ID': str(member_id), 'guild': str(guild)})
-
-
-# @bot.event
-# async def on_reaction_add(reaction, user):
     # NOT IMPLEMENTED
-    '''
-    global baddog_emoji
-    global reacted_messages
-    if reaction.emoji == baddog_emoji and reaction.count >= 3 and reaction.message.id not in reacted_messages:
-        reacted_messages.append(reaction.message.id)
-        image = baddog_images[random.randint(0, (len(baddog_images) - 1))]
-        await reaction.message.channel.send("<@!{}> {}".format(reaction.message.author.id, image))
-    '''
-
-
-@bot.command(name='test_history', hidden=True)
-async def test_history(ctx):
-    guild = ctx.guild
-    member = await guild.fetch_member(ctx.author.id)
-    channels = await guild.fetch_channels()
-
-    history = []
-    for channel in channels:
-        if type(channel) is discord.TextChannel:
-            history.append(await channel.history().get(author=member))
-
-    if history is None:
-        response = "Nothing to return"
-    else:
-        response = history
-    await ctx.send(response)
+    pass
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
@@ -593,106 +486,6 @@ async def roll(ctx, *args):
     await ctx.send(response)
 
 
-@bot.command(name='forbid', help='Will set up a trigger so when a word is said, a message is posted. '
-                                 'Syntax: forbid cookies AH! Now Im hungry, thanks &user, its only been &time since'
-                                 ' someone reminded me about it. Yall have said it &times now',
-             hidden=True)
-async def forbid(ctx, keyword, *args):
-    print(keyword)
-    print(args)
-    if args is not None:
-        message = tuple_to_str(args, " ")
-
-        # Has this keyword already been forbidden?
-        Boogerball.cursor.execute("SELECT word FROM forbiddenwords WHERE word = %(keyword)s",
-                                  {'keyword': keyword})
-        check = Boogerball.cursor.fetchone()
-
-        # It hasn't been used yet.
-        if check is None:
-            # Get ready to ask the user if they really want to register this word
-            prompt = "Do you really want me to create a forbidden word of {} where I say this each time?:" \
-                     "\n> {}".format(keyword, message)
-            emoji_list = ["✅", "⛔"]
-            prompt_message, choice = \
-                await emoji_menu(context=ctx, starting_message=prompt,
-                                 starting_emoji=emoji_list, failure_message="I didn't see a reaction from you,"
-                                                                              "so I stopped.", timeout_value=60,
-                                 success_message="Drumroll please...")
-
-            if choice == 0:
-                response = "I would have added this if my owner would finish the function."
-            else:
-                response = "Changed your mind? Okie dokie."
-
-            await prompt_message.edit(content=response)
-
-            # Boogerball.cursor.execute("INSERT INTO forbiddenwords"
-            #                           "(word, status, timesused, message)"
-            #                           "VALUES (%(keyword)s,1,0,%(message)s);",
-            #                           {'keyword': keyword, 'message': message})
-
-        # TODO: Query SQL to ensure keyword does not have a row in ForbiddenWords
-
-
-@bot.command(name='hug', help='Sends the user a hug GIF!')
-async def hug(ctx):
-    async with ctx.channel.typing():
-        if hasattr(ctx.message, 'raw_mentions'):
-            if len(ctx.message.raw_mentions) > 0:
-                for member_id in ctx.message.raw_mentions:
-                    guild = ctx.author.guild
-
-                    # Has this person been hugged before?
-                    Boogerball.cursor.execute("SELECT ID FROM hugs WHERE ID = %(ID)s AND guild = %(guild)s",
-                                              {'ID': str(member_id), 'guild': str(guild.id)})
-                    check = Boogerball.cursor.fetchall()
-
-                    # Make a new row if this is the first time this person has been hugged.
-                    if len(check) == 0:
-                        Boogerball.cursor.execute("INSERT INTO hugs (ID, guild, hugs) VALUES "
-                                                  "(%(ID)s, %(guild)s, 1)",
-                                                  {'ID': str(member_id), 'guild': str(guild.id)})
-
-                    # Add to the hug count if they've been here before.
-                    else:
-                        Boogerball.cursor.execute("UPDATE hugs SET hugs = hugs + 1 "
-                                                  "WHERE ID = %(ID)s AND guild = %(guild)s",
-                                                  {'ID': str(member_id), 'guild': str(guild.id)})
-
-                    # Let's have a few funny phrases to play with.
-                    list_hug_phrases = [
-                        "Special delivery for <@!{}>! Get hugged, nerd!"
-                        .format(str(member_id)),
-                        "Soups on! One hug for <@!{}>! Comin' right up!"
-                        .format(str(member_id)),
-                        "Guess who's getting a hug? <@!{}>!"
-                        .format(str(member_id)),
-                        "Extra! Extra! Read all about how <@!{}> is a cutie who got hugged!"
-                        .format(str(member_id))
-                    ]
-
-                    # Inform the victim of their hug!
-                    await ctx.send(list_hug_phrases[random.randint(0, (len(list_hug_phrases) - 1))])
-
-                    # Grab a hugging GIF from Tenor
-                    hug_gif_search_terms = [
-                        "hug anime", "hug cute", "hug baymax", "hugging anime", "snuggle cuddle hug cat love",
-                        "tackle hug anime", "puppy cute hug", "animal cuddle hug"
-                    ]
-                    hug_gifs = tenor_get(
-                        hug_gif_search_terms[random.randint(0, (len(hug_gif_search_terms) - 1))], 6)
-
-                    pick_a_gif = \
-                        hug_gifs['results'][random.randint(0, len(hug_gifs['results']) - 1)] \
-                        ['media'][0]['gif']['url']
-
-                    await ctx.send(pick_a_gif)
-
-            else:
-                await ctx.send("You didn't mention anyone! How will I ever know where to direct this frustration?!")
-
-
 @bot.command(name='spank', help='Spanks people you mention. Keeps track, too!')
 @commands.check(check_if_nsfw)
 async def spank(ctx):
@@ -742,8 +535,7 @@ async def spank(ctx):
 
                     # Grab a spanking GIF from Tenor
                     spank_gif_search_terms = [
-                        "spank", "bend over spank", "punishment spank", "discipline spank", "spanking", "ass whoopin",
-                        "ass smack"
+                        "spank", "bend over spank", "punishment spank", "discipline spank", "spanking", "ass smack"
                     ]
                     spank_gifs = tenor_get(
                         spank_gif_search_terms[random.randint(0, (len(spank_gif_search_terms) - 1))], 6)
@@ -756,6 +548,67 @@ async def spank(ctx):
 
             else:
                 await ctx.send("You didn't mention anyone! How will I ever know where to direct this frustration?!")
+
+
+@bot.command(name='hug', help='Sends the user a hug GIF!')
+async def hug(ctx):
+    async with ctx.channel.typing():
+        if hasattr(ctx.message, 'raw_mentions'):
+            if len(ctx.message.raw_mentions) > 0:
+                for member_id in ctx.message.raw_mentions:
+                    guild = ctx.author.guild
+
+                    # Has this person been hugged before?
+                    Boogerball.cursor.execute(
+                        "SELECT ID FROM hugs WHERE ID = %(ID)s AND guild = %(guild)s",
+                        {'ID': str(member_id), 'guild': str(guild.id)})
+                    check = Boogerball.cursor.fetchall()
+
+                    # Make a new row if this is the first time this person has been hugged.
+                    if len(check) == 0:
+                        Boogerball.cursor.execute("INSERT INTO hugs (ID, guild, hugs) VALUES "
+                                                  "(%(ID)s, %(guild)s, 1)",
+                                                  {'ID': str(member_id), 'guild': str(guild.id)})
+
+                    # Add to the hug count if they've been here before.
+                    else:
+                        Boogerball.cursor.execute("UPDATE hugs SET hugs = hugs + 1 "
+                                                  "WHERE ID = %(ID)s AND guild = %(guild)s",
+                                                  {'ID': str(member_id), 'guild': str(guild.id)})
+
+                    # Let's have a few funny phrases to play with.
+                    list_hug_phrases = [
+                        "Special delivery for <@!{}>! Get hugged, nerd!"
+                            .format(str(member_id)),
+                        "Soups on! One hug for <@!{}>! Comin' right up!"
+                            .format(str(member_id)),
+                        "Guess who's getting a hug? <@!{}>!"
+                            .format(str(member_id)),
+                        "Extra! Extra! Read all about how <@!{}> is a cutie who got hugged!"
+                            .format(str(member_id))
+                    ]
+
+                    # Inform the victim of their hug!
+                    await ctx.send(list_hug_phrases[random.randint(0, (len(list_hug_phrases) - 1))])
+
+                    # Grab a hugging GIF from Tenor
+                    hug_gif_search_terms = [
+                        "hug anime", "hug cute", "hug baymax", "hugging anime",
+                        "snuggle cuddle hug cat love",
+                        "tackle hug anime", "puppy cute hug", "animal cuddle hug"
+                    ]
+                    hug_gifs = tenor_get(
+                        hug_gif_search_terms[random.randint(0, (len(hug_gif_search_terms) - 1))], 6)
+
+                    pick_a_gif = \
+                        hug_gifs['results'][random.randint(0, len(hug_gifs['results']) - 1)] \
+                            ['media'][0]['gif']['url']
+
+                    await ctx.send(pick_a_gif)
+
+            else:
+                await ctx.send(
+                    "You didn't mention anyone! How will I ever know where to direct this frustration?!")
 
 
 @bot.command(name='admin', help='Allows setup of various commands and permissions in the bot.')
@@ -772,8 +625,7 @@ async def admin(message):
 async def on_message(message):
     if message.author != bot.user:
         channel = message.channel
-        # TODO: Run through the list of forbidden words to see if a message needs to be said
-        if re.search(r'\b[t,T]rump\b', message.content, flags=re.IGNORECASE) is not None:
+        if re.search(r'\bdonald trump\b', message.content, flags=re.IGNORECASE) is not None:
             response = "Oh god! Don't say his name!!"
             await channel.send(response)
 
