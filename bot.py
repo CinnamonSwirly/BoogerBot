@@ -27,6 +27,7 @@ bot = commands.Bot(command_prefix=command_prefix, owner_id=owner, intents=intent
 
 start_time = time.time()
 
+voting_messages = []
 
 class DatabaseConnection:
     def __init__(self):
@@ -232,6 +233,9 @@ async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
     tenor_token = str(sys.argv[2])
     await bot.change_presence(activity=discord.Activity(name='$help', type=discord.ActivityType.listening))
+    Boogerball.cursor.execute('SELECT message_ID FROM admissions')
+    for ID in Boogerball.cursor.fetchall():
+        voting_messages.append(ID[0])
 
 
 @bot.event
@@ -274,8 +278,109 @@ async def on_guild_join(guild):
 
 @bot.event
 async def on_member_join(member):
-    # NOT IMPLEMENTED
-    pass
+    if member.guild.id == 766490733632553000:
+        voting_channel = await bot.fetch_channel('787401853809328148')
+        welcome_channel = await bot.fetch_channel('766490733632553004')
+
+        await welcome_channel.send("Welcome to our cottage, <@!{}>! Please relax and be patient. Our community wants "
+                                   "to stay chill, so we may want to get to know you before letting you in. Someone "
+                                   "will come say hello soon!".format(member.id))
+
+        voting_message = await voting_channel.send("<@!{}> has joined our server. Please get to know them and "
+                                                   "vote here whether or not to let them in.".format(member.id))
+
+        await voting_message.add_reaction("👍")
+        await voting_message.add_reaction("👎")
+
+        Boogerball.cursor.execute("INSERT INTO admissions (message_ID, member_ID) VALUES (%(one)s, %(two)s)",
+                                  {'one': str(voting_message.id), 'two': str(member.id)})
+
+        voting_messages.append(voting_message.id)
+
+    else:
+        pass
+
+
+@bot.event
+async def on_member_remove(member):
+    Boogerball.cursor.execute('SELECT message_ID FROM admissions WHERE member_ID = %(one)s',
+                              {'one': str(member.id)})
+    result = Boogerball.cursor.fetchone()
+
+    if result is not None:
+        result = result[0]
+        voting_channel = await bot.fetch_channel(787401853809328148)
+        message = await voting_channel.fetch_message(result)
+        await message.edit(content=message.content + "\n\nUPDATE: This user left our server.")
+
+        voting_messages.remove(result)
+        Boogerball.cursor.execute('DELETE FROM admissions WHERE member_ID = %(one)s',
+                                  {'one': str(member.id)})
+    else:
+        pass
+
+    departure_channel = await bot.fetch_channel(787446451906805771)
+    await departure_channel.send("<@!{}> has left the server.".format(member.id))
+
+
+@bot.event
+async def on_raw_reaction_add(payload):
+    if payload.message_id in voting_messages:
+        voting_channel = await bot.fetch_channel(787401853809328148)
+        message = await voting_channel.fetch_message(payload.message_id)
+
+        moderator_role = message.guild.get_role(766755768023515186)
+        admission_role = message.guild.get_role(766491477122744370)
+
+        moderator_count = len(moderator_role.members)
+        majority = max(moderator_count // 3 + 1, 2)
+
+        green = discord.utils.get(message.reactions, emoji="👍")
+        red = discord.utils.get(message.reactions, emoji="👎")
+
+        if green.count >= majority:
+            Boogerball.cursor.execute('SELECT member_ID FROM admissions WHERE message_ID = %(one)s',
+                                      {'one': str(payload.message_id)})
+            result = Boogerball.cursor.fetchone()[0]
+
+            if result is not None:
+                try:
+                    newbie = await message.guild.fetch_member(result)
+                except discord.errors.NotFound:
+                    newbie = None
+            else:
+                newbie = None
+
+            if newbie is not None:
+                await newbie.add_roles(admission_role, reason='The community voted to allow them in.')
+                await message.edit(content=message.content + "\n\nUPDATE: We confirmed this user!")
+
+            voting_messages.remove(payload.message_id)
+            Boogerball.cursor.execute('DELETE FROM admissions WHERE message_ID = %(one)s',
+                                      {'one': str(payload.message_id)})
+        if red.count >= majority:
+            Boogerball.cursor.execute('SELECT member_ID FROM admissions WHERE message_ID = %(one)s',
+                                      {'one': str(payload.message_id)})
+            result = Boogerball.cursor.fetchone()[0]
+
+            voting_messages.remove(payload.message_id)
+            Boogerball.cursor.execute('DELETE FROM admissions WHERE message_ID = %(one)s',
+                                      {'one': str(payload.message_id)})
+
+            if result is not None:
+                try:
+                    newbie = await message.guild.fetch_member(result)
+                except discord.errors.NotFound:
+                    newbie = None
+            else:
+                newbie = None
+
+            if newbie is not None:
+                await message.guild.ban(newbie, reason='The community voted to reject you. Goodbye.')
+                await message.edit(content=message.content + "\n\nUPDATE: We rejected this user.")
+
+    else:
+        pass
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
