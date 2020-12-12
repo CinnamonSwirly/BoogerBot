@@ -317,7 +317,7 @@ async def on_member_leave(member):
         print("They had a pending admission.")
         voting_channel = await bot.fetch_channel('787401853809328148')
         message = await voting_channel.fetch_message(int(result[0]))
-        await message.edit(message.content + "\n\nUPDATE: This user left before we could confirm them.")
+        await message.edit(content=str(message.content + "\n\nUPDATE: This user left before we could confirm them."))
 
         voting_messages.remove(result[0])
         Boogerball.cursor.execute('DELETE FROM admissions WHERE member_ID = %(one)s',
@@ -356,7 +356,7 @@ async def on_raw_reaction_add(payload):
 
             if newbie is not None:
                 await newbie.add_roles(admission_role, reason='The community voted to allow them in.')
-                await message.edit(message.content + "\n\nUPDATE: We confirmed this user!")
+                await message.edit(content=str(message.content + "\n\nUPDATE: We confirmed this user!"))
 
             voting_messages.remove(payload.message_id)
             Boogerball.cursor.execute('DELETE FROM admissions WHERE message_ID = %(one)s',
@@ -373,7 +373,7 @@ async def on_raw_reaction_add(payload):
 
             if newbie is not None:
                 await message.guild.ban(newbie, reason='The community voted to reject you. Goodbye.')
-                await message.edit(message.content + "\n\nUPDATE: We rejected this user.")
+                await message.edit(content=str(message.content + "\n\nUPDATE: We rejected this user."))
 
             voting_messages.remove(payload.message_id)
             Boogerball.cursor.execute('DELETE FROM admissions WHERE message_ID = %(one)s',
