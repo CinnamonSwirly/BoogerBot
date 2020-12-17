@@ -413,12 +413,12 @@ async def on_reaction_add(reaction, user):
             stars = discord.utils.get(message.reactions, emoji=star)
             sprays = discord.utils.get(message.reactions, emoji=spray)
 
-            if sprays.count >= 1 and reaction.message.id not in reacted_messages:
+            if sprays is not None and sprays.count >= 1 and reaction.message.id not in reacted_messages:
                 reacted_messages.append(reaction.message.id)
                 image = baddog_images[random.randint(0, (len(baddog_images) - 1))]
                 await reaction.message.channel.send("<@!{}>\n{}".format(reaction.message.author.id, image))
 
-            if stars.count >= 1 and reaction.message.id not in reacted_messages:
+            if stars is not None and stars.count >= 1 and reaction.message.id not in reacted_messages:
                 reacted_messages.append(reaction.message.id)
                 embed = discord.Embed(title="One for the record books...", color="#FFC300")
                 embed.thumbnail(url="https://discord.com/assets/030fc6691abd2ab36c1d90407e02505e.svg")
