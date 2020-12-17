@@ -246,7 +246,7 @@ async def on_ready():
     for ID in Boogerball.cursor.fetchall():
         voting_messages.append(ID[0])
 
-    guilds = bot.fetch_guilds().flatten()
+    guilds = await bot.fetch_guilds().flatten()
     for guild in guilds:
         if 782196191935987732 == guild.id:
             guild = await bot.fetch_guild(782196191935987732)
