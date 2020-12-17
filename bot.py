@@ -419,6 +419,7 @@ async def on_reaction_add(reaction, user):
                 await reaction.message.channel.send("<@!{}>\n{}".format(reaction.message.author.id, image))
 
             if stars is not None and stars.count >= 1 and reaction.message.id not in reacted_messages:
+                print("Making an embed...")
                 reacted_messages.append(reaction.message.id)
                 embed = discord.Embed(title="One for the record books...", color="#FFC300")
                 embed.thumbnail(url="https://discord.com/assets/030fc6691abd2ab36c1d90407e02505e.svg")
@@ -426,8 +427,12 @@ async def on_reaction_add(reaction, user):
                                 value="In: {}".format(reaction.message.channel.name))
                 embed.add_field(name="Message:", value=message.clean_content)
 
+                print(embed)
+
                 star_channel = await guild.fetch_channel(789198638966243338)
+                print(star_channel)
                 await star_channel.send(embed=embed)
+
                 pass
 
 
