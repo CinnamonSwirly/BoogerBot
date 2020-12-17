@@ -318,29 +318,31 @@ async def on_member_join(member):
 
 @bot.event
 async def on_member_remove(member):
-    Boogerball.cursor.execute('SELECT message_ID FROM admissions WHERE member_ID = %(one)s',
-                              {'one': str(member.id)})
-    result = Boogerball.cursor.fetchone()
+    if member.guild.id == 782243401809920030:
+        Boogerball.cursor.execute('SELECT message_ID FROM admissions WHERE member_ID = %(one)s',
+                                  {'one': str(member.id)})
+        result = Boogerball.cursor.fetchone()
 
-    if result is not None:
-        result = result[0]
-        voting_channel = await bot.fetch_channel(787449046271918080)
-        message = await voting_channel.fetch_message(result)
-        await message.edit(content=message.content + "\n\nUPDATE: This user left our server.")
+        if result is not None:
+            result = result[0]
+            voting_channel = await bot.fetch_channel(787449046271918080)
+            message = await voting_channel.fetch_message(result)
+            await message.edit(content=message.content + "\n\nUPDATE: This user left our server.")
 
-        try:
-            voting_messages.remove(result)
-        except ValueError:
+            try:
+                voting_messages.remove(result)
+            except ValueError:
+                pass
+
+            Boogerball.cursor.execute('DELETE FROM admissions WHERE member_ID = %(one)s',
+                                      {'one': str(member.id)})
+        else:
             pass
 
-        Boogerball.cursor.execute('DELETE FROM admissions WHERE member_ID = %(one)s',
-                                  {'one': str(member.id)})
+        departure_channel = await bot.fetch_channel(787448656382787614)
+        await departure_channel.send("{} has left the server.".format(member.name))
     else:
         pass
-
-
-    departure_channel = await bot.fetch_channel(787448656382787614)
-    await departure_channel.send("{} has left the server.".format(member.name))
 
 
 @bot.event
