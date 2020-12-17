@@ -324,7 +324,7 @@ async def on_member_remove(member):
         pass
 
     departure_channel = await bot.fetch_channel(787448656382787614)
-    await departure_channel.send("<@!{}> has left the server.".format(member.id))
+    await departure_channel.send("{} has left the server.".format(member.name))
 
 
 @bot.event
