@@ -247,9 +247,10 @@ async def on_ready():
         voting_messages.append(ID[0])
 
     guilds = bot.fetch_guilds()
-    if 782196191935987732 in guilds.id:
-        guild = await bot.fetch_guild(782196191935987732)
-        guild.leave()
+    for guild in guilds:
+        if 782196191935987732 == guild.id:
+            guild = await bot.fetch_guild(782196191935987732)
+            guild.leave()
 
 
 @bot.event
