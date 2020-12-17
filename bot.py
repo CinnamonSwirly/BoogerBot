@@ -404,14 +404,14 @@ async def on_reaction_add(reaction, user):
         pass
     else:
         global reacted_messages
-        guild = await bot.fetch_guild(766490733632553000)
+        guild = await bot.fetch_guild(782243401809920030)
         if reaction.message.guild == guild:
-            spray = discord.utils.get(guild.emojis, id=774650992074948628) #784805549686259763
+            spray = discord.utils.get(guild.emojis, id=784805549686259763)
             message = await reaction.message.channel.fetch_message(reaction.message.id)
 
             sprays = discord.utils.get(message.reactions, emoji=spray)
 
-            if sprays is not None and sprays.count >= 1 and reaction.message.id not in reacted_messages:
+            if sprays is not None and sprays.count >= 3 and reaction.message.id not in reacted_messages:
                 reacted_messages.append(reaction.message.id)
                 image = baddog_images[random.randint(0, (len(baddog_images) - 1))]
                 await reaction.message.channel.send("<@!{}>\n{}".format(reaction.message.author.id, image))
