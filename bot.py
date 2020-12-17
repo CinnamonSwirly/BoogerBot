@@ -409,31 +409,12 @@ async def on_reaction_add(reaction, user):
             spray = discord.utils.get(guild.emojis, id=774650992074948628) #784805549686259763
             message = await reaction.message.channel.fetch_message(reaction.message.id)
 
-            stars = discord.utils.get(message.reactions, emoji="⭐")
             sprays = discord.utils.get(message.reactions, emoji=spray)
 
             if sprays is not None and sprays.count >= 1 and reaction.message.id not in reacted_messages:
                 reacted_messages.append(reaction.message.id)
                 image = baddog_images[random.randint(0, (len(baddog_images) - 1))]
                 await reaction.message.channel.send("<@!{}>\n{}".format(reaction.message.author.id, image))
-
-            if stars is not None and stars.count >= 1 and reaction.message.id not in reacted_messages:
-                print("Making an embed...")
-                reacted_messages.append(reaction.message.id)
-                embed = discord.Embed(title="One for the record books...", color=discord.Color.gold())
-                embed.set_thumbnail(url="https://discord.com/assets/030fc6691abd2ab36c1d90407e02505e.svg")
-                embed.add_field(name="Message by: {}".format(reaction.message.author.name),
-                                value="In: {}".format(reaction.message.channel.name), inline=False)
-                embed.add_field(name="Message:", value=message.clean_content, inline=False)
-                embed.add_field(name="Original message:", value=message.jump_url)
-
-                print(embed)
-
-                star_channel = await bot.fetch_channel(789198638966243338)
-                print(star_channel)
-                await star_channel.send(embed=embed)
-
-                pass
 
 
 @bot.command(name='bump', help='Pretends to bump the server :P')
