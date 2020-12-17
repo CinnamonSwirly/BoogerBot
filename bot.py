@@ -408,7 +408,7 @@ async def on_reaction_add(reaction, user):
         if reaction.message.guild == guild:
             spray = discord.utils.get(guild.emojis, id=789198707353714729)
             stars = discord.utils.get(reaction.message.reactions, emoji="⭐")
-            sprays = discord.utils.get(reaction.message.reactions, emoji=spray)
+            sprays = discord.utils.get(reaction.message.reactions, emoji=str(spray))
 
             if sprays.count >= 1 and reaction.message.id not in reacted_messages:
                 reacted_messages.append(reaction.message.id)
