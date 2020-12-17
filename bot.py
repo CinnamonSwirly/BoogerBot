@@ -407,10 +407,9 @@ async def on_reaction_add(reaction, user):
         guild = await bot.fetch_guild(766490733632553000)
         if reaction.message.guild == guild:
             spray = discord.utils.get(guild.emojis, id=774650992074948628) #784805549686259763
-            star = discord.utils.get(guild.emojis, id=789206476992282674)
             message = await reaction.message.channel.fetch_message(reaction.message.id)
 
-            stars = discord.utils.get(message.reactions, emoji=star)
+            stars = discord.utils.get(message.reactions, emoji="⭐")
             sprays = discord.utils.get(message.reactions, emoji=spray)
 
             if sprays is not None and sprays.count >= 1 and reaction.message.id not in reacted_messages:
