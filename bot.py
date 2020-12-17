@@ -421,7 +421,7 @@ async def on_reaction_add(reaction, user):
                 print("Making an embed...")
                 reacted_messages.append(reaction.message.id)
                 embed = discord.Embed(title="One for the record books...", color=discord.Color.gold())
-                embed.thumbnail(url="https://discord.com/assets/030fc6691abd2ab36c1d90407e02505e.svg")
+                embed.set_thumbnail(url="https://discord.com/assets/030fc6691abd2ab36c1d90407e02505e.svg")
                 embed.add_field(name="Message by: {}".format(reaction.message.author.name),
                                 value="In: {}".format(reaction.message.channel.name))
                 embed.add_field(name="Message:", value=message.clean_content)
