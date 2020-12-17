@@ -432,6 +432,7 @@ async def on_reaction_add(reaction, user):
 
 @bot.command(name='bump', help='Pretends to bump the server :P')
 async def bump(ctx):
+    global start_time
     difference = datetime.datetime.now().replace(microsecond=0) - start_time
     threshold = datetime.timedelta(hours=2)
 
@@ -442,7 +443,6 @@ async def bump(ctx):
 
         pick_a_gif = thumbs_up['results'][random.randint(0, 11)]['media'][0]['gif']['url']
 
-        global start_time
         start_time = datetime.datetime.now().replace(microsecond=0)
 
         await ctx.send(pick_a_gif)
