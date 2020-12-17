@@ -250,7 +250,7 @@ async def on_ready():
     for guild in guilds:
         if 782196191935987732 == guild.id:
             guild = await bot.fetch_guild(782196191935987732)
-            guild.leave()
+            await guild.leave()
 
 
 @bot.event
