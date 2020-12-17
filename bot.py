@@ -407,8 +407,10 @@ async def on_reaction_add(reaction, user):
         guild = await bot.fetch_guild(766490733632553000)
         if reaction.message.guild == guild:
             spray = discord.utils.get(guild.emojis, id=789198707353714729)
-            stars = discord.utils.get(reaction.message.reactions, emoji="⭐")
-            sprays = discord.utils.get(reaction.message.reactions, emoji=str(spray))
+            message = await reaction.message.channel.fetch_message(reaction.message.id)
+
+            stars = discord.utils.get(message.reactions, emoji="⭐")
+            sprays = discord.utils.get(message.reactions, emoji=str(spray))
 
             if sprays.count >= 1 and reaction.message.id not in reacted_messages:
                 reacted_messages.append(reaction.message.id)
@@ -421,7 +423,7 @@ async def on_reaction_add(reaction, user):
                 embed.thumbnail(url="https://discord.com/assets/030fc6691abd2ab36c1d90407e02505e.svg")
                 embed.add_field(name="Message by: {}".format(reaction.message.author.name),
                                 value="In: {}".format(reaction.message.channel.name))
-                embed.add_field(name="Message:", value=reaction.message.clean_content)
+                embed.add_field(name="Message:", value=message.clean_content)
 
                 star_channel = await guild.fetch_channel(789198638966243338)
                 await star_channel.send(embed=embed)
@@ -439,6 +441,9 @@ async def bump(ctx):
             "thumbs up anime", 12)
 
         pick_a_gif = thumbs_up['results'][random.randint(0, 11)]['media'][0]['gif']['url']
+
+        global start_time
+        start_time = datetime.datetime.now().replace(microsecond=0)
 
         await ctx.send(pick_a_gif)
     else:
@@ -465,7 +470,7 @@ async def stop(ctx):
 @commands.is_owner()
 async def stats(ctx):
     uptime = datetime.datetime.now().replace(microsecond=0) - start_time
-    end_time_string = "System Uptime: {} (Days, Hours, Seconds, Minutes)"\
+    end_time_string = "System Uptime: {}"\
         .format(uptime)
     await ctx.send(end_time_string)
 
