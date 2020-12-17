@@ -7,6 +7,7 @@ import sys
 import psycopg2
 import asyncio
 import time
+import datetime
 from psycopg2 import sql
 from discord.ext import commands
 
@@ -25,9 +26,17 @@ intents = discord.Intents.default()
 intents.members = True
 bot = commands.Bot(command_prefix=command_prefix, owner_id=owner, intents=intents)
 
-start_time = time.time()
+start_time = datetime.datetime.now().replace(microsecond=0)
 
 voting_messages = []
+reacted_messages = []
+
+baddog_images = [
+    'https://tenor.com/view/lilo-and-stitch-stitch-bad-dog-spray-spraying-gif-5134293',
+    'https://tenor.com/view/modern-family-goaway-squirt-bottle-shoo-gif-4979455',
+    'https://tenor.com/view/gravity-falls-bill-gravityfalls-no-gif-14949051',
+]
+
 
 class DatabaseConnection:
     def __init__(self):
@@ -237,6 +246,12 @@ async def on_ready():
     for ID in Boogerball.cursor.fetchall():
         voting_messages.append(ID[0])
 
+    guilds = await bot.fetch_guilds().flatten()
+    for guild in guilds:
+        if 782196191935987732 == guild.id:
+            guild = await bot.fetch_guild(782196191935987732)
+            guild.leave()
+
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -323,6 +338,7 @@ async def on_member_remove(member):
     else:
         pass
 
+
     departure_channel = await bot.fetch_channel(787448656382787614)
     await departure_channel.send("{} has left the server.".format(member.name))
 
@@ -388,6 +404,47 @@ async def on_raw_reaction_add(payload):
         pass
 
 
+@bot.event
+async def on_reaction_add(reaction, user):
+    if reaction.message.id in voting_messages:
+        pass
+    else:
+        global reacted_messages
+        guild = await bot.fetch_guild(782243401809920030)
+        if reaction.message.guild == guild:
+            spray = discord.utils.get(guild.emojis, id=784805549686259763)
+            message = await reaction.message.channel.fetch_message(reaction.message.id)
+
+            sprays = discord.utils.get(message.reactions, emoji=spray)
+
+            if sprays is not None and sprays.count >= 3 and reaction.message.id not in reacted_messages:
+                reacted_messages.append(reaction.message.id)
+                image = baddog_images[random.randint(0, (len(baddog_images) - 1))]
+                await reaction.message.channel.send("<@!{}>\n{}".format(reaction.message.author.id, image))
+
+
+@bot.command(name='bump', help='Pretends to bump the server :P')
+async def bump(ctx):
+    global start_time
+    difference = datetime.datetime.now().replace(microsecond=0) - start_time
+    threshold = datetime.timedelta(hours=2)
+
+    if difference >= threshold:
+        await ctx.send("Server bumped! (Or was it?) 👍")
+        thumbs_up = tenor_get(
+            "thumbs up anime", 12)
+
+        pick_a_gif = thumbs_up['results'][random.randint(0, 11)]['media'][0]['gif']['url']
+
+        start_time = datetime.datetime.now().replace(microsecond=0)
+
+        await ctx.send(pick_a_gif)
+    else:
+        delay = datetime.timedelta(hours=2) - difference
+        await ctx.send("Ouch! Too fast! (or maybe too hard?) Wait {} before trying again."
+                       .format(delay))
+
+
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
 async def ping(ctx):
     response = 'Pong!'
@@ -405,13 +462,9 @@ async def stop(ctx):
 @bot.command(name='stats', hidden=True, aliases=['stat', 'uptime'])
 @commands.is_owner()
 async def stats(ctx):
-    uptime = round(time.time() - start_time)
-    end_time_seconds = str(uptime % 60)
-    end_time_minutes = str((uptime // 60) % 60)
-    end_time_hours = str(((uptime // 60) // 60) % 24)
-    end_time_days = str(((uptime // 60) // 60) // 24)
-    end_time_string = "System Uptime: {} days, {} hours, {} minutes, {} seconds"\
-        .format(end_time_days, end_time_hours, end_time_minutes, end_time_seconds)
+    uptime = datetime.datetime.now().replace(microsecond=0) - start_time
+    end_time_string = "System Uptime: {}"\
+        .format(uptime)
     await ctx.send(end_time_string)
 
 
