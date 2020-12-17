@@ -26,7 +26,7 @@ intents = discord.Intents.default()
 intents.members = True
 bot = commands.Bot(command_prefix=command_prefix, owner_id=owner, intents=intents)
 
-start_time = datetime.datetime.now()
+start_time = datetime.datetime.now().replace(microsecond=0)
 
 voting_messages = []
 reacted_messages = []
@@ -430,7 +430,7 @@ async def on_reaction_add(reaction, user):
 
 @bot.command(name='bump', help='Pretends to bump the server :P')
 async def bump(ctx):
-    difference = datetime.datetime.now() - start_time
+    difference = datetime.datetime.now().replace(microsecond=0) - start_time
     threshold = datetime.timedelta(hours=2)
 
     if difference >= threshold:
@@ -442,8 +442,9 @@ async def bump(ctx):
 
         await ctx.send(pick_a_gif)
     else:
+        delay = datetime.timedelta(hours=2) - difference
         await ctx.send("Ouch! Too fast! (or maybe too hard?) Wait {} before trying again."
-                       .format(datetime.timedelta(hours=2) - difference))
+                       .format(delay)
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
@@ -463,7 +464,7 @@ async def stop(ctx):
 @bot.command(name='stats', hidden=True, aliases=['stat', 'uptime'])
 @commands.is_owner()
 async def stats(ctx):
-    uptime = datetime.datetime.now() - start_time
+    uptime = datetime.datetime.now().replace(microsecond=0) - start_time
     end_time_string = "System Uptime: {} (Days, Hours, Seconds, Minutes)"\
         .format(uptime)
     await ctx.send(end_time_string)
