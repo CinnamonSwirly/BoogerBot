@@ -428,7 +428,7 @@ async def on_reaction_add(reaction, user):
 
                 print(embed)
 
-                star_channel = await guild.fetch_channel(789198638966243338)
+                star_channel = await bot.fetch_channel(789198638966243338)
                 print(star_channel)
                 await star_channel.send(embed=embed)
 
