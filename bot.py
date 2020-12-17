@@ -444,7 +444,7 @@ async def bump(ctx):
     else:
         delay = datetime.timedelta(hours=2) - difference
         await ctx.send("Ouch! Too fast! (or maybe too hard?) Wait {} before trying again."
-                       .format(delay)
+                       .format(delay))
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
