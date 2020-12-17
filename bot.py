@@ -420,7 +420,7 @@ async def on_reaction_add(reaction, user):
             if stars is not None and stars.count >= 1 and reaction.message.id not in reacted_messages:
                 print("Making an embed...")
                 reacted_messages.append(reaction.message.id)
-                embed = discord.Embed(title="One for the record books...", color="#FFC300")
+                embed = discord.Embed(title="One for the record books...", color=discord.Color.gold())
                 embed.thumbnail(url="https://discord.com/assets/030fc6691abd2ab36c1d90407e02505e.svg")
                 embed.add_field(name="Message by: {}".format(reaction.message.author.name),
                                 value="In: {}".format(reaction.message.channel.name))
