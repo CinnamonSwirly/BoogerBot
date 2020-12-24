@@ -6,7 +6,6 @@ import re
 import sys
 import psycopg2
 import asyncio
-import time
 import datetime
 from psycopg2 import sql
 from discord.ext import commands
@@ -35,6 +34,37 @@ baddog_images = [
     'https://tenor.com/view/lilo-and-stitch-stitch-bad-dog-spray-spraying-gif-5134293',
     'https://tenor.com/view/modern-family-goaway-squirt-bottle-shoo-gif-4979455',
     'https://tenor.com/view/gravity-falls-bill-gravityfalls-no-gif-14949051',
+]
+
+spank_images = [
+    'https://tenor.com/view/spank-tomandjerry-gif-5196956',
+    'https://tenor.com/view/spank-spanking-looneytunes-foghornleghorn-gif-7391212',
+    'https://tenor.com/view/cats-funny-spank-slap-gif-15308590',
+    'https://tenor.com/view/weeds-esteban-spanking-gif-4938822',
+    'https://tenor.com/view/hot-spank-butt-slap-butt-butt-grab-gif-12569697',
+    'https://tenor.com/view/office-gif-4457011',
+    'https://tenor.com/view/slapping-gif-18392559',
+    'https://tenor.com/view/bad-beat-spank-punishment-gif-13569259',
+    'https://tenor.com/view/chris-jericho-trish-stratus-spanking-wwe-wwf-gif-14318603',
+    'https://tenor.com/view/spanking-sexy-time-sex-cute-couple-bed-time-gif-17087903',
+]
+
+hug_images = [
+    'https://tenor.com/view/anime-hug-sweet-love-gif-14246498',
+    'https://tenor.com/view/hug-anime-gif-10195705',
+    'https://tenor.com/view/hug-anime-gif-11074788',
+    'https://tenor.com/view/hug-cuddle-comfort-love-friends-gif-5166500',
+    'https://tenor.com/view/hug-anime-sweet-couple-gif-12668480',
+    'https://tenor.com/view/hug-anime-gif-7552077',
+    'https://tenor.com/view/hug-kon-anime-sweet-cute-gif-17509833',
+    'https://tenor.com/view/anime-hug-hug-hugs-anime-girl-anime-girl-hug-gif-16787485',
+    'https://tenor.com/view/hugmati-gif-18302861',
+    'https://tenor.com/view/sweet-kitty-love-cats-couple-gif-12796047',
+    'https://tenor.com/view/cat-love-huge-hug-big-gif-11990658',
+    'https://tenor.com/view/cuddle-love-cat-gif-13393256',
+    'https://tenor.com/view/anh-thien-be-heo-chuppy-bunny-hug-love-couple-gif-17750801',
+    'https://tenor.com/view/cuddle-hug-anime-bunny-costumes-happy-gif-17956092',
+    'https://tenor.com/view/good-night-mommy-cuddle-koala-gif-18431601',
 ]
 
 
@@ -318,29 +348,31 @@ async def on_member_join(member):
 
 @bot.event
 async def on_member_remove(member):
-    Boogerball.cursor.execute('SELECT message_ID FROM admissions WHERE member_ID = %(one)s',
-                              {'one': str(member.id)})
-    result = Boogerball.cursor.fetchone()
+    if member.guild.id == 782243401809920030:
+        Boogerball.cursor.execute('SELECT message_ID FROM admissions WHERE member_ID = %(one)s',
+                                  {'one': str(member.id)})
+        result = Boogerball.cursor.fetchone()
 
-    if result is not None:
-        result = result[0]
-        voting_channel = await bot.fetch_channel(787449046271918080)
-        message = await voting_channel.fetch_message(result)
-        await message.edit(content=message.content + "\n\nUPDATE: This user left our server.")
+        if result is not None:
+            result = result[0]
+            voting_channel = await bot.fetch_channel(787449046271918080)
+            message = await voting_channel.fetch_message(result)
+            await message.edit(content=message.content + "\n\nUPDATE: This user left our server.")
 
-        try:
-            voting_messages.remove(result)
-        except ValueError:
+            try:
+                voting_messages.remove(result)
+            except ValueError:
+                pass
+
+            Boogerball.cursor.execute('DELETE FROM admissions WHERE member_ID = %(one)s',
+                                      {'one': str(member.id)})
+        else:
             pass
 
-        Boogerball.cursor.execute('DELETE FROM admissions WHERE member_ID = %(one)s',
-                                  {'one': str(member.id)})
+        departure_channel = await bot.fetch_channel(787448656382787614)
+        await departure_channel.send("{} has left the server.".format(member.name))
     else:
         pass
-
-
-    departure_channel = await bot.fetch_channel(787448656382787614)
-    await departure_channel.send("{} has left the server.".format(member.name))
 
 
 @bot.event
@@ -695,16 +727,8 @@ async def spank(ctx):
                     # Inform the victim of their spank!
                     await ctx.send(list_spank_phrases[random.randint(0, (len(list_spank_phrases) - 1))])
 
-                    # Grab a spanking GIF from Tenor
-                    spank_gif_search_terms = [
-                        "spank", "bend over spank", "punishment spank", "discipline spank", "spanking", "ass smack"
-                    ]
-                    spank_gifs = tenor_get(
-                        spank_gif_search_terms[random.randint(0, (len(spank_gif_search_terms) - 1))], 6)
-
                     pick_a_gif = \
-                        spank_gifs['results'][random.randint(0, len(spank_gifs['results']) - 1)] \
-                        ['media'][0]['gif']['url']
+                        spank_images[random.randint(0, len(spank_images) - 1)]
 
                     await ctx.send(pick_a_gif)
 
@@ -753,19 +777,8 @@ async def hug(ctx):
                     # Inform the victim of their hug!
                     await ctx.send(list_hug_phrases[random.randint(0, (len(list_hug_phrases) - 1))])
 
-                    # Grab a hugging GIF from Tenor
-                    hug_gif_search_terms = [
-                        "hug anime", "hug cute", "hug baymax", "hugging anime",
-                        "snuggle cuddle hug cat love",
-                        "tackle hug anime", "puppy cute hug", "animal cuddle hug"
-                    ]
-                    hug_gifs = tenor_get(
-                        hug_gif_search_terms[random.randint(0, (len(hug_gif_search_terms) - 1))], 6)
-
                     pick_a_gif = \
-                        hug_gifs['results'][random.randint(0, len(hug_gifs['results']) - 1)] \
-                            ['media'][0]['gif']['url']
-
+                        hug_images[random.randint(0, len(hug_images) - 1)]
                     await ctx.send(pick_a_gif)
 
             else:
