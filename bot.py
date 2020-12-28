@@ -265,6 +265,22 @@ async def close_menu(author, guild):
     return 1
 
 
+async def poll_check(poll_channel, announce_channel):
+    threshold = datetime.datetime.now() - datetime.timedelta(weeks=1)
+    print(threshold)
+    channel = poll_channel
+    print(channel)
+    message = await channel.history(limit=1, oldest_first=False).flatten()
+    print(message)
+    date = message[0].created_at
+    print(date)
+
+    if date > threshold:
+        await announce_channel.send("The message is newer than the threshold.")
+    else:
+        await announce_channel.send("The message is older than the threshold.")
+
+
 @bot.event
 async def on_ready():
     global tenor_token
@@ -479,19 +495,9 @@ async def bump(ctx):
 
 @bot.command(name='test_history', help='Looks at how old messages are in the channel')
 async def test_history(ctx):
-    threshold = datetime.datetime.now() - datetime.timedelta(weeks=1)
-    print(threshold)
-    channel = await bot.fetch_channel(787446451906805771)
-    print(channel)
-    message = await channel.history(limit=1, oldest_first=False).flatten()
-    print(message)
-    date = message[0].created_at
-    print(date)
-
-    if date > threshold:
-        await ctx.send("The message is newer than the threshold.")
-    else:
-        await ctx.send("The message is older than the threshold.")
+    poll_channel = await bot.fetch_channel(787401853809328148)
+    announce_channel = await bot.fetch_channel(766490733632553004)
+    await poll_check(poll_channel, announce_channel)
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
