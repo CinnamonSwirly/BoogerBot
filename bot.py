@@ -479,7 +479,7 @@ async def bump(ctx):
 
 @bot.command(name='test_history', help='Looks at how old messages are in the channel')
 async def test_history(ctx):
-    threshold = datetime.datetime.now() - datetime.timedelta(weeks=-1)
+    threshold = datetime.datetime.now() - datetime.timedelta(weeks=1)
     print(threshold)
     channel = ctx.channel
     print(channel)
