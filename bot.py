@@ -480,12 +480,18 @@ async def bump(ctx):
 @bot.command(name='test_history', help='Looks at how old messages are in the channel')
 async def test_history(ctx):
     threshold = datetime.datetime.now() - datetime.timedelta(weeks=-1)
+    print(threshold)
     channel = ctx.channel
+    print(channel)
     message = await channel.history(limit=1, oldest_first=False).flatten()
+    print(message)
     date = message[0].created_at
+    print(date)
 
     if date > threshold:
         ctx.send("The message is newer than the threshold.")
+    else:
+        ctx.send("The message is older than the threshold.")
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
