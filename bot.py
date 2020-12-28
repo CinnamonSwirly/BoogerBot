@@ -481,7 +481,7 @@ async def bump(ctx):
 async def test_history(ctx):
     threshold = datetime.datetime.now() - datetime.timedelta(weeks=1)
     print(threshold)
-    channel = ctx.channel
+    channel = await ctx.guild.fetch_channel(787446451906805771)
     print(channel)
     message = await channel.history(limit=1, oldest_first=False).flatten()
     print(message)
