@@ -481,8 +481,8 @@ async def bump(ctx):
 async def test_history(ctx):
     threshold = datetime.datetime.now() - datetime.timedelta(weeks=-1)
     channel = ctx.channel
-    message = await channel.history(limit=1, oldest_first=False).flatten()[0]
-    date = message.created_at
+    message = await channel.history(limit=1, oldest_first=False).flatten()
+    date = message[0].created_at
 
     if date > threshold:
         ctx.send("The message is newer than the threshold.")
