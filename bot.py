@@ -296,8 +296,8 @@ async def on_ready():
         voting_messages.append(ID[0])
 
     # Announces if there is a recent poll in the server
-    poll_channel = await bot.fetch_channel(787401853809328148)
-    announce_channel = await bot.fetch_channel(766490733632553004)
+    poll_channel = await bot.fetch_channel(793203850227220500)
+    announce_channel = await bot.fetch_channel(782243402590322720)
     await poll_check(poll_channel, announce_channel)
 
     # Only if you need to leave a guild
