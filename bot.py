@@ -489,9 +489,9 @@ async def test_history(ctx):
     print(date)
 
     if date > threshold:
-        ctx.send("The message is newer than the threshold.")
+        await ctx.send("The message is newer than the threshold.")
     else:
-        ctx.send("The message is older than the threshold.")
+        await ctx.send("The message is older than the threshold.")
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
