@@ -265,6 +265,23 @@ async def close_menu(author, guild):
     return 1
 
 
+async def poll_check(poll_channel, announce_channel):
+    while True:
+        threshold = datetime.datetime.now() - datetime.timedelta(weeks=1)
+        channel = poll_channel
+        message = await channel.history(limit=1, oldest_first=False).flatten()
+        date = message[0].created_at
+
+        if date > threshold:
+            await announce_channel.send("There's a poll running! Head to {} to cast your vote!".format(channel.mention))
+
+        # Repeat once every 12 hours
+        await asyncio.sleep(43200)
+
+        # Repeat every minute for testing
+        # await asyncio.sleep(60)
+
+
 @bot.event
 async def on_ready():
     global tenor_token
@@ -272,15 +289,25 @@ async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
     tenor_token = str(sys.argv[2])
     await bot.change_presence(activity=discord.Activity(name='$help', type=discord.ActivityType.listening))
+
+    # Repopulate the voting messages in case of a bot reboot
     Boogerball.cursor.execute('SELECT message_ID FROM admissions')
     for ID in Boogerball.cursor.fetchall():
         voting_messages.append(ID[0])
 
+    # Announces if there is a recent poll in the server
+    poll_channel = await bot.fetch_channel(787401853809328148)
+    announce_channel = await bot.fetch_channel(766490733632553004)
+    await poll_check(poll_channel, announce_channel)
+
+    # Only if you need to leave a guild
+    """
     guilds = await bot.fetch_guilds().flatten()
     for guild in guilds:
         if 782196191935987732 == guild.id:
             guild = await bot.fetch_guild(782196191935987732)
             await guild.leave()
+    """
 
 
 @bot.event
@@ -475,6 +502,13 @@ async def bump(ctx):
         delay = datetime.timedelta(hours=2) - difference
         await ctx.send("Ouch! Too fast! (or maybe too hard?) Wait {} before trying again."
                        .format(delay))
+
+
+@bot.command(name='test_history', help='Looks at how old messages are in the channel')
+async def test_history(ctx):
+    poll_channel = await bot.fetch_channel(787401853809328148)
+    announce_channel = await bot.fetch_channel(766490733632553004)
+    await poll_check(poll_channel, announce_channel)
 
 
 @bot.command(name='ping', help='Responds to your message. Used for testing purposes.')
