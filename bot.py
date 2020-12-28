@@ -268,24 +268,18 @@ async def close_menu(author, guild):
 async def poll_check(poll_channel, announce_channel):
     while True:
         threshold = datetime.datetime.now() - datetime.timedelta(weeks=1)
-        print(threshold)
         channel = poll_channel
-        print(channel)
         message = await channel.history(limit=1, oldest_first=False).flatten()
-        print(message)
         date = message[0].created_at
-        print(date)
 
         if date > threshold:
-            await announce_channel.send("The message is newer than the threshold.")
-        else:
-            await announce_channel.send("The message is older than the threshold.")
+            await announce_channel.send("There's a poll running! Head to {} to cast your vote!".format(channel.mention))
 
         # Repeat once every 12 hours
-        # await asyncio.sleep(43200)
+        await asyncio.sleep(43200)
 
         # Repeat every minute for testing
-        await asyncio.sleep(60)
+        # await asyncio.sleep(60)
 
 
 @bot.event
