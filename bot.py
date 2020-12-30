@@ -267,7 +267,7 @@ async def close_menu(author, guild):
 
 async def poll_check(poll_channel, announce_channel):
     while True:
-        threshold = datetime.datetime.now() - datetime.timedelta(weeks=1)
+        threshold = datetime.datetime.now() - datetime.timedelta(days=2)
         channel = poll_channel
         message = await channel.history(limit=1, oldest_first=False).flatten()
         date = message[0].created_at
