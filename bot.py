@@ -854,11 +854,11 @@ async def admin(message):
 async def talk(message):
     if len(queue_messages) == 0:
 
-        member = await message.guild.fetch_member(message.author.id)
-        if member.voice.channel is not None:
+        #member = await message.guild.fetch_member(message.author.id)
+        if message.author.voice is not None:
             global queue_channel
 
-            await member.voice.channel.connect(timeout=7200.0, reconnect=False)
+            await message.author.voice.channel.connect(timeout=7200.0, reconnect=False)
 
             opening_message_dict = {
                 "title": "Talking Queue",
