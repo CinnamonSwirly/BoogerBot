@@ -462,14 +462,15 @@ async def on_raw_reaction_add(payload):
                 await message.edit(content=message.content + "\n\nUPDATE: We rejected this user.")
 
     elif payload.message_id in queue_messages:
-        global queue_channel
-        message = await queue_channel.fetch_message(payload.message_id)
-        await message.remove_reaction(payload.emoji)
+        if payload.user_id != 766694635208310794:
+            global queue_channel
+            message = await queue_channel.fetch_message(payload.message_id)
+            await message.remove_reaction(payload.emoji)
 
-        cancel = discord.utils.get(message.reactions, emoji="❌")
+            cancel = discord.utils.get(message.reactions, emoji="❌")
 
-        if cancel > 0:
-            queue_messages.clear()
+            if cancel > 0:
+                queue_messages.clear()
 
     else:
         pass
