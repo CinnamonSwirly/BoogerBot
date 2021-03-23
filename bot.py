@@ -830,6 +830,22 @@ async def admin(message):
         await admin_menu(user, guild)
 
 
+@bot.command(name='talk', help='Starts a speaking queue to manage conversations')
+@commands.guild_only()
+async def talk(message):
+    opening_message_dict = {
+        "title": "Talking Queue",
+        "colour": "#FFFFFF",
+        "description": "Hey! You've started a talking queue! \nIf you want to talk, react with 👋"
+                       "\nIf you've been talking and want to pass to the next person, react with 🏁"
+                       "\n\nThis queue will stop automatically after 10 minutes of no activity. "
+                       "If you leave the voice chat, you have 1 minute to reconnect!"
+                       "\nQueue:\nEmpty"
+    }
+    opening_message = discord.embeds.Embed.from_dict(opening_message_dict)
+    await message.channel.send(opening_message)
+
+
 @bot.event
 async def on_message(message):
     if message.author != bot.user:
