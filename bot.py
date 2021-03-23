@@ -853,25 +853,33 @@ async def admin(message):
 @commands.guild_only()
 async def talk(message):
     if len(queue_messages) == 0:
-        global queue_channel
 
-        opening_message_dict = {
-            "title": "Talking Queue",
-            "colour": "#FFFFFF",
-            "description": "Hey! You've started a talking queue! \nIf you want to talk, react with 👋"
-                           "\nTo pass your turn to the next person, react with 🏁"
-                           "\nTo stop the queue, react with ❌"
-                           "\nIf you leave the voice chat, you have 1 minute to reconnect!"
-                           "\n\nQueue:\nEmpty"
-        }
-        opening_message = discord.embeds.Embed.from_dict(opening_message_dict)
+        member = message.guild.fetch_member(message.author.id)
+        if member.voice.channel is not None:
+            global queue_channel
 
-        queue_message = await message.channel.send(embed=opening_message)
-        queue_messages.append(queue_message.id)
+            await member.voice.channel.connect(timeout=7200.0, reconnect=False)
 
-        queue_channel = message.channel
-        await queue_message.add_reaction("👋")
-        await queue_message.add_reaction("🏁")
+            opening_message_dict = {
+                "title": "Talking Queue",
+                "colour": "#FFFFFF",
+                "description": "Hey! You've started a talking queue! \nIf you want to talk, react with 👋"
+                               "\nTo pass your turn to the next person, react with 🏁"
+                               "\nTo stop the queue, react with ❌"
+                               "\nIf you leave the voice chat, you have 1 minute to reconnect!"
+                               "\n\nQueue:\nEmpty"
+            }
+            opening_message = discord.embeds.Embed.from_dict(opening_message_dict)
+
+            queue_message = await message.channel.send(embed=opening_message)
+            queue_messages.append(queue_message.id)
+
+            queue_channel = message.channel
+            await queue_message.add_reaction("👋")
+            await queue_message.add_reaction("🏁")
+
+        else:
+            await message.channel.send("You should connect to a voice channel before starting a queue!")
 
     else:
         await message.channel.send("I'm already running a queue! I can't be in two places at once :(")
