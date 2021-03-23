@@ -465,9 +465,8 @@ async def on_raw_reaction_add(payload):
         if payload.user_id != 766694635208310794:
             global queue_channel
             message = await queue_channel.fetch_message(payload.message_id)
-            print(message)
-            print(payload.emoji)
-            await message.remove_reaction(payload.emoji)
+            member = await queue_channel.guild.fetch_member(payload.user_id)
+            await message.remove_reaction(payload.emoji,member)
 
             cancel = discord.utils.get(message.reactions, emoji="❌")
 
