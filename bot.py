@@ -866,7 +866,7 @@ async def talk(message):
         opening_message = discord.embeds.Embed.from_dict(opening_message_dict)
 
         queue_message = await message.channel.send(embed=opening_message)
-        queue_messages.append(queue_message)
+        queue_messages.append(queue_message.id)
 
         queue_channel = message.channel
         await queue_message.add_reaction("👋")
