@@ -863,7 +863,9 @@ async def talk(message):
         queue_messages.append(queue_message)
 
         queue_channel = message.channel
-        await queue_message.add_reaction(("👋", "🏁"))
+        await queue_message.add_reaction("👋")
+        await queue_message.add_reaction("🏁")
+
     else:
         await message.channel.send("I'm already running a queue! I can't be in two places at once :(")
 
