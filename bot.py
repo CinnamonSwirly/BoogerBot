@@ -854,7 +854,7 @@ async def admin(message):
 async def talk(message):
     if len(queue_messages) == 0:
 
-        member = message.guild.fetch_member(message.author.id)
+        member = await message.guild.fetch_member(message.author.id)
         if member.voice.channel is not None:
             global queue_channel
 
