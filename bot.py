@@ -475,7 +475,7 @@ async def on_raw_reaction_add(payload):
                 queue_messages.clear()
 
     else:
-        pass
+        print(payload.message_id, " -- ", queue_messages)
 
 
 @bot.event
