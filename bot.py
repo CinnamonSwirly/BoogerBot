@@ -465,6 +465,8 @@ async def on_raw_reaction_add(payload):
         if payload.user_id != 766694635208310794:
             global queue_channel
             message = await queue_channel.fetch_message(payload.message_id)
+            print(message)
+            print(payload.emoji)
             await message.remove_reaction(payload.emoji)
 
             cancel = discord.utils.get(message.reactions, emoji="❌")
@@ -481,18 +483,21 @@ async def on_reaction_add(reaction, user):
     if reaction.message.id in voting_messages:
         pass
     else:
-        global reacted_messages
-        guild = await bot.fetch_guild(782243401809920030)
-        if reaction.message.guild == guild:
-            spray = discord.utils.get(guild.emojis, id=784805549686259763)
-            message = await reaction.message.channel.fetch_message(reaction.message.id)
+        try:
+            guild = await bot.fetch_guild(782243401809920030)
+            global reacted_messages
+            if reaction.message.guild == guild:
+                spray = discord.utils.get(guild.emojis, id=784805549686259763)
+                message = await reaction.message.channel.fetch_message(reaction.message.id)
 
-            sprays = discord.utils.get(message.reactions, emoji=spray)
+                sprays = discord.utils.get(message.reactions, emoji=spray)
 
-            if sprays is not None and sprays.count >= 3 and reaction.message.id not in reacted_messages:
-                reacted_messages.append(reaction.message.id)
-                image = baddog_images[random.randint(0, (len(baddog_images) - 1))]
-                await reaction.message.channel.send("<@!{}>\n{}".format(reaction.message.author.id, image))
+                if sprays is not None and sprays.count >= 3 and reaction.message.id not in reacted_messages:
+                    reacted_messages.append(reaction.message.id)
+                    image = baddog_images[random.randint(0, (len(baddog_images) - 1))]
+                    await reaction.message.channel.send("<@!{}>\n{}".format(reaction.message.author.id, image))
+        except discord.errors.Forbidden:
+            pass
 
 
 @bot.command(name='bump', help='Pretends to bump the server :P')
