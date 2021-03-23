@@ -466,15 +466,17 @@ async def on_raw_reaction_add(payload):
             global queue_channel
             message = await queue_channel.fetch_message(payload.message_id)
             member = await queue_channel.guild.fetch_member(payload.user_id)
-            await message.remove_reaction(payload.emoji, member)
 
             cancel = discord.utils.get(message.reactions, emoji="❌")
 
             if cancel is not None:
                 queue_messages.clear()
+                queue_channel = None
+
+            await message.remove_reaction(payload.emoji, member)
 
     else:
-        print(payload.message_id, " -- ", queue_messages)
+        pass
 
 
 @bot.event
