@@ -843,7 +843,7 @@ async def talk(message):
                        "\nQueue:\nEmpty"
     }
     opening_message = discord.embeds.Embed.from_dict(opening_message_dict)
-    await message.channel.send(opening_message)
+    await message.channel.send(embed=opening_message)
 
 
 @bot.event
