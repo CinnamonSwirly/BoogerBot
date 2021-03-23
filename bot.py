@@ -29,6 +29,7 @@ start_time = datetime.datetime.now().replace(microsecond=0)
 
 voting_messages = []
 reacted_messages = []
+queue_messages = []
 
 baddog_images = [
     'https://tenor.com/view/lilo-and-stitch-stitch-bad-dog-spray-spraying-gif-5134293',
@@ -459,6 +460,9 @@ async def on_raw_reaction_add(payload):
                 await message.guild.ban(newbie, reason='The community voted to reject you. Goodbye.')
                 await message.edit(content=message.content + "\n\nUPDATE: We rejected this user.")
 
+    elif payload.message_id in queue_messages:
+        pass
+
     else:
         pass
 
@@ -833,17 +837,21 @@ async def admin(message):
 @bot.command(name='talk', help='Starts a speaking queue to manage conversations')
 @commands.guild_only()
 async def talk(message):
-    opening_message_dict = {
-        "title": "Talking Queue",
-        "colour": "#FFFFFF",
-        "description": "Hey! You've started a talking queue! \nIf you want to talk, react with 👋"
-                       "\nIf you've been talking and want to pass to the next person, react with 🏁"
-                       "\n\nThis queue will stop automatically after 10 minutes of no activity. "
-                       "If you leave the voice chat, you have 1 minute to reconnect!"
-                       "\nQueue:\nEmpty"
-    }
-    opening_message = discord.embeds.Embed.from_dict(opening_message_dict)
-    await message.channel.send(embed=opening_message)
+    if len(queue_messages) == 0:
+        opening_message_dict = {
+            "title": "Talking Queue",
+            "colour": "#FFFFFF",
+            "description": "Hey! You've started a talking queue! \nIf you want to talk, react with 👋"
+                           "\nIf you've been talking and want to pass to the next person, react with 🏁"
+                           "\n\nThis queue will stop automatically after 10 minutes of no activity. "
+                           "If you leave the voice chat, you have 1 minute to reconnect!"
+                           "\n\nQueue:\nEmpty"
+        }
+        opening_message = discord.embeds.Embed.from_dict(opening_message_dict)
+        queue_message = await message.channel.send(embed=opening_message)
+        queue_messages.append(queue_message)
+    else:
+        message.channel.send("I'm already running a queue! I can't be in two places at once :(")
 
 
 @bot.event
