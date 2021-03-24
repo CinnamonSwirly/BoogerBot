@@ -30,6 +30,8 @@ start_time = datetime.datetime.now().replace(microsecond=0)
 voting_messages = []
 reacted_messages = []
 queue_messages = []
+
+queue_message = None
 queue_channel = None
 
 baddog_images = [
@@ -464,17 +466,29 @@ async def on_raw_reaction_add(payload):
     elif payload.message_id in queue_messages:
         if payload.user_id != 766694635208310794:
             global queue_channel
+            global queue_message
+
             message = await queue_channel.fetch_message(payload.message_id)
             member = await queue_channel.guild.fetch_member(payload.user_id)
 
             cancel = discord.utils.get(message.reactions, emoji="❌")
 
             if cancel is not None:
-                queue_messages.clear()
-                queue_channel = None
                 await message.guild.change_voice_state(channel=None)
 
-            await message.remove_reaction(payload.emoji, member)
+                embed_dict = {
+                    "title": "Talking Queue",
+                    "colour": "#EFEFEF",
+                    "description": "The queue has ended."
+                }
+                await queue_message.edit(embed=embed_dict)
+
+                queue_messages.clear()
+                queue_message = None
+                queue_channel = None
+
+            else:
+                await message.remove_reaction(payload.emoji, member)
 
     else:
         pass
@@ -857,6 +871,7 @@ async def talk(message):
 
         if message.author.voice is not None:
             global queue_channel
+            global queue_message
 
             await message.guild.change_voice_state(channel=message.author.voice.channel, self_deaf=True, self_mute=True)
 
