@@ -472,6 +472,7 @@ async def on_raw_reaction_add(payload):
             if cancel is not None:
                 queue_messages.clear()
                 queue_channel = None
+                await message.guild.change_voice_state(channel=None)
 
             await message.remove_reaction(payload.emoji, member)
 
@@ -857,7 +858,6 @@ async def talk(message):
         if message.author.voice is not None:
             global queue_channel
 
-            #await message.author.voice.channel.connect(timeout=7200.0, reconnect=False)
             await message.guild.change_voice_state(channel=message.author.voice.channel, self_deaf=True, self_mute=True)
 
             opening_message_dict = {
