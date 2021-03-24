@@ -474,12 +474,8 @@ async def on_raw_reaction_add(payload):
             cancel = discord.utils.get(message.reactions, emoji="❌")
 
             if cancel is not None:
-                print(bot.voice_clients)
-                for client in bot.voice_clients:
-                    print(client)
-                    for user in client.channel.members:
-                        print(user)
-                        await user.edit(mute=False)
+                for user in message.guild.me.voice.channel.members:
+                    await user.edit(mute=False)
 
                 embed_dict = {
                     "title": "Talking Queue",
