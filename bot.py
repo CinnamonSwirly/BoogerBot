@@ -481,7 +481,8 @@ async def on_raw_reaction_add(payload):
                     "colour": "#EFEFEF",
                     "description": "The queue has ended."
                 }
-                await queue_message.edit(embed=embed_dict)
+                closed_embed = discord.embeds.Embed.from_dict(embed_dict)
+                await queue_message.edit(embed=closed_embed)
 
                 queue_messages.clear()
                 queue_message = None
