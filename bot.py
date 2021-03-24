@@ -474,6 +474,10 @@ async def on_raw_reaction_add(payload):
             cancel = discord.utils.get(message.reactions, emoji="❌")
 
             if cancel is not None:
+                for client in bot.voice_clients:
+                    for user in client.channel.members:
+                        await user.edit(mute=False)
+
                 await message.guild.change_voice_state(channel=None)
 
                 embed_dict = {
@@ -893,6 +897,9 @@ async def talk(message):
             queue_channel = message.channel
             await queue_message.add_reaction("👋")
             await queue_message.add_reaction("🏁")
+
+            for member in message.author.voice.channel.members:
+                await member.edit(mute=True)
 
         else:
             await message.channel.send("You should connect to a voice channel before starting a queue!")
