@@ -475,10 +475,10 @@ async def on_raw_reaction_add(payload):
 
             if cancel is not None:
                 for client in bot.voice_clients:
+                    print(client)
                     for user in client.channel.members:
+                        print(user)
                         await user.edit(mute=False)
-
-                await message.guild.change_voice_state(channel=None)
 
                 embed_dict = {
                     "title": "Talking Queue",
@@ -491,6 +491,8 @@ async def on_raw_reaction_add(payload):
                 queue_messages.clear()
                 queue_message = None
                 queue_channel = None
+
+                await message.guild.change_voice_state(channel=None)
 
             else:
                 await message.remove_reaction(payload.emoji, member)
